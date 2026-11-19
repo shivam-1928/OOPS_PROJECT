@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS revision(version INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS accounts(id TEXT PRIMARY KEY, name TEXT NOT NULL, username TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, email TEXT NOT NULL, role TEXT NOT NULL CHECK(role IN ('ADMINISTRATOR','EMPLOYEE','TECHNICIAN')), department TEXT, active INTEGER NOT NULL, available INTEGER);
+CREATE TABLE IF NOT EXISTS skills(technician TEXT REFERENCES accounts NOT NULL, skill TEXT NOT NULL, PRIMARY KEY(technician,skill));
+CREATE TABLE IF NOT EXISTS incidents(id TEXT PRIMARY KEY, reporter TEXT REFERENCES accounts NOT NULL, title TEXT NOT NULL, description TEXT NOT NULL, category TEXT NOT NULL, impact INTEGER CHECK(impact BETWEEN 1 AND 5), urgency INTEGER CHECK(urgency BETWEEN 1 AND 5), criticality INTEGER CHECK(criticality BETWEEN 1 AND 5), priority TEXT NOT NULL, status TEXT NOT NULL, technician TEXT REFERENCES accounts, created TEXT NOT NULL, acknowledged TEXT, resolved TEXT, closed TEXT, resolution TEXT, response_due TEXT NOT NULL, resolution_due TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS audit(at TEXT NOT NULL, actor TEXT REFERENCES accounts NOT NULL, action TEXT NOT NULL, incident TEXT REFERENCES incidents NOT NULL, previous TEXT, current TEXT, description TEXT);
+CREATE TABLE IF NOT EXISTS notifications(recipient TEXT REFERENCES accounts NOT NULL, message TEXT NOT NULL);

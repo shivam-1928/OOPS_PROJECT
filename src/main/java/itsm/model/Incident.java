@@ -35,7 +35,7 @@ public class Incident {
     private Priority priority;
     private Status status;
     private String technicianId;
-    private final LocalDateTime createdAt;
+    private LocalDateTime createdAt;
     private LocalDateTime acknowledgedAt;
     private LocalDateTime resolvedAt;
     private LocalDateTime closedAt;
@@ -157,6 +157,8 @@ public class Incident {
     public void setTechnicianId(String technicianId) {
         this.technicianId = technicianId;
     }
+
+    public void restoreCreatedAt(LocalDateTime value) { createdAt = value; }
 
     public LocalDateTime getCreatedAt() {
         return createdAt;

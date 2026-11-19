@@ -11,6 +11,8 @@ public class NotificationService {
         inAppNotifications = new ArrayList<>();
     }
 
+    public void restore(String message) { inAppNotifications.add(message); }
+
     public void sendConsoleNotification(String recipient, String message) {
         validate(recipient, message);
         System.out.println("\n[CONSOLE NOTIFICATION] To: " + recipient);

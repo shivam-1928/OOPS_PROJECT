@@ -34,6 +34,8 @@ public class ConsoleMenu {
     private final IntelligentIncidentService intelligentService;
     private final ReportService reportService;
 
+    private final itsm.persistence.Database database;
+
     public ConsoleMenu() {
         scanner = new Scanner(System.in);
         users = new LinkedHashMap<>();
@@ -43,7 +45,12 @@ public class ConsoleMenu {
         notificationService = new NotificationService();
         intelligentService = new IntelligentIncidentService(incidentService, slaService);
         reportService = new ReportService();
-        addDemoUsers();
+        database = new itsm.persistence.Database(users, incidentService, slaService, auditService, notificationService);
+        database.load();
+        if (users.isEmpty()) {
+            addDemoUsers();
+            database.save();
+        }
     }
 
     private void addDemoUsers() {
@@ -119,6 +126,7 @@ public class ConsoleMenu {
         String id = "E" + String.format("%03d", users.size() + 1);
         Employee employee = new Employee(id, name, username, password, email, department);
         users.put(username, employee);
+        database.save();
         System.out.println("Employee registered. Your user ID is " + id);
     }
 
@@ -147,6 +155,7 @@ public class ConsoleMenu {
                     default: System.out.println("Invalid choice.");
                 }
             } catch (RuntimeException ex) {
+                if (ex instanceof java.io.UncheckedIOException) throw ex;
                 System.out.println("Operation failed: " + ex.getMessage());
             }
         }
@@ -169,6 +178,7 @@ public class ConsoleMenu {
                 "NONE", incident.getStatus().name(), "Incident reported.");
         notificationService.sendInAppNotification(employee.getUserId(),
                 "Incident " + id + " has been created with priority " + incident.getPriority() + ".");
+        database.save();
         System.out.println("Incident created. ID: " + id
                 + " | Priority: " + incident.getPriority());
         List<Incident> duplicates = intelligentService.findPossibleDuplicates(incident);
@@ -188,6 +198,7 @@ public class ConsoleMenu {
         incident.setDescription(incident.getDescription() + "\nAdditional information: " + extra);
         auditService.record(employee.getUserId(), "ADD_INFORMATION", id,
                 incident.getStatus().name(), incident.getStatus().name(), extra);
+        database.save();
         System.out.println("Information added.");
     }
 
@@ -198,6 +209,7 @@ public class ConsoleMenu {
         incidentService.verifyIncident(id, employee.getUserId());
         auditService.record(employee.getUserId(), "VERIFY_INCIDENT", id,
                 old.name(), incident.getStatus().name(), "Employee verified resolution.");
+        database.save();
         System.out.println("Incident verified.");
     }
 
@@ -209,6 +221,7 @@ public class ConsoleMenu {
         reduceTechnicianWorkload(incident);
         auditService.record(employee.getUserId(), "CLOSE_INCIDENT", id,
                 old.name(), incident.getStatus().name(), "Incident closed.");
+        database.save();
         System.out.println("Incident closed.");
     }
 
@@ -239,6 +252,7 @@ public class ConsoleMenu {
                     default: System.out.println("Invalid choice.");
                 }
             } catch (RuntimeException ex) {
+                if (ex instanceof java.io.UncheckedIOException) throw ex;
                 System.out.println("Operation failed: " + ex.getMessage());
             }
         }
@@ -263,6 +277,7 @@ public class ConsoleMenu {
                 old.name(), incident.getStatus().name(), "Technician updated incident.");
         notificationService.sendInAppNotification(incident.getEmployeeId(),
                 "Incident " + id + " status is now " + incident.getStatus() + ".");
+        database.save();
         System.out.println("Incident status updated to " + incident.getStatus());
     }
 
@@ -278,6 +293,7 @@ public class ConsoleMenu {
                 "Incident " + id + " has been resolved. Please log in to verify it.");
         notificationService.sendInAppNotification(incident.getEmployeeId(),
                 "Incident " + id + " has been resolved.");
+        database.save();
         System.out.println("Incident resolved.");
     }
 
@@ -312,6 +328,7 @@ public class ConsoleMenu {
                     default: System.out.println("Invalid choice.");
                 }
             } catch (RuntimeException ex) {
+                if (ex instanceof java.io.UncheckedIOException) throw ex;
                 System.out.println("Operation failed: " + ex.getMessage());
             }
         }
@@ -324,12 +341,14 @@ public class ConsoleMenu {
         TechnicianAssignmentStrategy strategy = choice == 1
                 ? new SkillBasedAssignment() : new LoadBasedAssignment();
         Incident incident = incidentService.getIncident(id);
+        String previousStatus = incident.getStatus().name();
         Incident assigned = incidentService.assignIncident(id, getTechnicians(), strategy);
         auditService.record(administrator.getUserId(), "ASSIGN_INCIDENT", id,
-                incident.getStatus().name(), assigned.getStatus().name(),
+                previousStatus, assigned.getStatus().name(),
                 "Assigned using " + strategy.getStrategyName());
         notificationService.sendInAppNotification(assigned.getTechnicianId(),
                 "Incident " + id + " has been assigned to you.");
+        database.save();
         System.out.println("Assigned to technician ID: " + assigned.getTechnicianId());
     }
 
@@ -373,6 +392,7 @@ public class ConsoleMenu {
             notificationService.sendInAppNotification(incident.getEmployeeId(),
                     "Incident " + incident.getIncidentId() + " has been escalated.");
         }
+        database.save();
         System.out.println("Escalated incidents: " + escalated.size());
     }
 
