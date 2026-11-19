@@ -18,7 +18,7 @@ public abstract class User {
         this.userId = userId;
         this.name = name;
         this.username = username;
-        this.password = password;
+        this.password = PasswordHash.create(password);
         this.email = email;
         this.active = true;
     }
@@ -50,7 +50,7 @@ public abstract class User {
     }
 
     public boolean checkPassword(String password) {
-        return this.password.equals(password);
+        return PasswordHash.matches(password, this.password);
     }
 
     public void changePassword(String oldPassword, String newPassword) {
@@ -60,8 +60,12 @@ public abstract class User {
         if (isBlank(newPassword)) {
             throw new IllegalArgumentException("New password cannot be empty.");
         }
-        this.password = newPassword;
+        this.password = PasswordHash.create(newPassword);
     }
+
+    public String getPasswordHash() { return password; }
+
+    public void restorePasswordHash(String hash) { this.password = hash; }
 
     public String getEmail() {
         return email;

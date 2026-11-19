@@ -25,6 +25,10 @@ public class SLAService {
         slaRecords = new HashMap<>();
     }
 
+    public void restore(String id, LocalDateTime response, LocalDateTime resolution) {
+        slaRecords.put(id, new SLADetails(response, resolution));
+    }
+
     public void startTracking(Incident incident) {
         if (incident == null || incident.getPriority() == null) {
             throw new IllegalArgumentException("A classified incident is required.");

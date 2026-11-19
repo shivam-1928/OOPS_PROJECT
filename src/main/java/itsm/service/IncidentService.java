@@ -20,6 +20,8 @@ public class IncidentService {
         priorityCalculator = new PriorityCalculator();
     }
 
+    public void restore(Incident incident) { incidents.put(incident.getIncidentId(), incident); }
+
     public Incident createIncident(Incident incident) {
         if (incident == null) {
             throw new IllegalArgumentException("Incident cannot be null.");

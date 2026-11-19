@@ -13,7 +13,12 @@ public class AuditLog {
 
     public AuditLog(String userId, String action, String incidentId,
                     String previousState, String newState, String description) {
-        this.timestamp = LocalDateTime.now();
+        this(LocalDateTime.now(), userId, action, incidentId, previousState, newState, description);
+    }
+
+    public AuditLog(LocalDateTime timestamp, String userId, String action, String incidentId,
+                    String previousState, String newState, String description) {
+        this.timestamp = timestamp;
         this.userId = userId;
         this.action = action;
         this.incidentId = incidentId;

@@ -12,6 +12,8 @@ public class AuditService {
         logs = new ArrayList<>();
     }
 
+    public void restore(AuditLog log) { logs.add(log); }
+
     public void record(String userId, String action, String incidentId,
                        String previousState, String newState, String description) {
         logs.add(new AuditLog(userId, action, incidentId,
