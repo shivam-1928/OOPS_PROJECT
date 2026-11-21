@@ -10,6 +10,14 @@ Java incident-management services with a browser frontend and persistent SQLite 
 
 Open **http://127.0.0.1:8085/**. Requires Java 17 or newer and Python 3 (standard library only). A JDK 21 and bundled Python fallback are configured for this machine. The launcher compiles sources automatically. The port defaults to 8080 if omitted.
 
+If Windows PowerShell blocks the trusted local startup script, launch it for this process only:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\start-web.ps1 -Port 8085
+```
+
+Keep that terminal open while using the website, and include `:8085` in the browser address. A connection-refused page means the server is not listening at the requested address; check the terminal for startup errors.
+
 Use employee/emp123, admin/admin123, tech1/tech123, or tech2/tech123. Employee sign-up now creates persistent accounts. Profile/password changes, activation status, technician skills/availability, incidents, original timestamps/deadlines, audit records, notifications, questions and replies survive restarts. Sessions intentionally end when the server stops; sign in again afterward.
 
 The active database is `data/itsm.sqlite`. On the first launch only, the launcher copies the supplied `database/sample.sqlite` there; subsequent launches reuse the existing file. The sample and prior local servers' records are not overwritten. Earlier in-memory demo servers do not automatically migrate into this database. Use the current address above for persistent work.
