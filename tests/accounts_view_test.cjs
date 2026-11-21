@@ -1,0 +1,18 @@
+const assert = require('node:assert/strict');
+const { filterUsers } = require('../frontend/accounts.js');
+const rows = [{userId:'E001',name:'Zoe',username:'zoe',email:'zoe@local.test',department:'Support',role:'EMPLOYEE',active:true},{userId:'T001',name:'Alex',username:'alex',email:'alex@local.test',role:'TECHNICIAN',active:false},{userId:'A001',name:'Admin',username:'admin',email:'admin@local.test',role:'ADMINISTRATOR',active:true}];
+const original = JSON.stringify(rows);
+let checks=0;
+function check(actual,expected){assert.deepEqual(actual,expected);checks++;}
+check(filterUsers(rows).map(u=>u.userId),['A001','T001','E001']);
+check(filterUsers(rows,{role:'EMPLOYEE'}).length,1);
+check(filterUsers(rows,{active:'false'}).map(u=>u.userId),['T001']);
+check(filterUsers(rows,{active:'true'}).length,2);
+check(filterUsers(rows,{role:'TECHNICIAN',active:'true'}),[]);
+check(filterUsers(rows,{},'  SUPPORT ').map(u=>u.userId),['E001']);
+check(filterUsers(rows,{},'alex@local').map(u=>u.userId),['T001']);
+check(filterUsers(rows,{},'a001').map(u=>u.userId),['A001']);
+check(filterUsers(rows,{},'not found'),[]);
+check(filterUsers([],{},''),[]);
+check(JSON.stringify(rows),original);
+console.log(`Accounts: ${checks} directory view assertions passed.`);

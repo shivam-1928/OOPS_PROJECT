@@ -1,0 +1,562 @@
+warning: in the working copy of 'LICENSE', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'database/schema.sql', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'database/store.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/main/java/itsm/Main.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/main/java/itsm/console/ConsoleMenu.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/main/java/itsm/model/Administrator.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/main/java/itsm/model/AuditLog.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/main/java/itsm/model/Employee.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/main/java/itsm/model/Incident.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/main/java/itsm/model/PasswordHash.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/main/java/itsm/model/Technician.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/main/java/itsm/model/User.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/main/java/itsm/service/AuditService.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/main/java/itsm/service/IncidentService.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/main/java/itsm/service/IntelligentIncidentService.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/main/java/itsm/service/NotificationService.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/main/java/itsm/service/PriorityCalculator.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/main/java/itsm/service/ReportService.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/main/java/itsm/service/SLAService.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/main/java/itsm/strategy/LoadBasedAssignment.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/main/java/itsm/strategy/SkillBasedAssignment.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/main/java/itsm/strategy/TechnicianAssignmentStrategy.java', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/.gitignore b/.gitignore[m
+[1mindex 524f096..790524d 100644[m
+[1m--- a/.gitignore[m
+[1m+++ b/.gitignore[m
+[36m@@ -22,3 +22,8 @@[m
+ # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml[m
+ hs_err_pid*[m
+ replay_pid*[m
+[32m+[m
+[32m+[m[32m# Local web build[m
+[32m+[m[32m.build/[m
+[32m+[m[32mdata/[m
+[32m+[m[32mdatabase/__pycache__/[m
+[1mdiff --git a/README.md b/README.md[m
+[1mindex e4044a1..829370c 100644[m
+[1m--- a/README.md[m
+[1m+++ b/README.md[m
+[36m@@ -1,28 +1,29 @@[m
+[31m-# OOPS_PROJECT[m
+[31m-## Run the database-backed console[m
+[32m+[m[32m# I-ITSM course project[m
+ [m
+[31m-Install JDK 17 or later and Python 3.8 or later. Run these commands **from the project root** (the directory containing `src` and `database`).[m
+[32m+[m[32mJava incident-management services with a browser frontend and persistent SQLite storage, using the supplied `database/store.py` adapter. The updated backend workflows remain in place.[m
+[32m+[m
+[32m+[m[32m## Run the web application[m
+ [m
+[31m-**Windows PowerShell**[m
+ ```powershell[m
+[31m-javac -d out (Get-ChildItem -Recurse src -Filter *.java).FullName[m
+[31m-java -cp out itsm.Main[m
+[32m+[m[32m.\start-web.ps1 -Port 8085[m
+ ```[m
+ [m
+[31m-**Linux/macOS**[m
+[31m-```sh[m
+[31m-javac -d out $(find src -name '*.java')[m
+[31m-java -Ditsm.python=python3 -cp out itsm.Main[m
+[31m-```[m
+[32m+[m[32mOpen **http://127.0.0.1:8085/**. Requires Java 17 or newer and Python 3 (standard library only). A JDK 21 and bundled Python fallback are configured for this machine. The launcher compiles sources automatically. The port defaults to 8080 if omitted.[m
+[32m+[m
+[32m+[m[32mUse employee/emp123, admin/admin123, tech1/tech123, or tech2/tech123. Employee sign-up now creates persistent accounts. Profile/password changes, activation status, technician skills/availability, incidents, original timestamps/deadlines, audit records, notifications, questions and replies survive restarts. Sessions intentionally end when the server stops; sign in again afterward.[m
+[32m+[m
+[32m+[m[32mThe active database is `data/itsm.sqlite`. On the first launch only, the launcher copies the supplied `database/sample.sqlite` there; subsequent launches reuse the existing file. The sample and prior local servers' records are not overwritten. Earlier in-memory demo servers do not automatically migrate into this database. Use the current address above for persistent work.[m
+[32m+[m
+[32m+[m[32mOptional launcher parameters: `-DatabasePath <path>`, `-PythonPath <python.exe>`, and `-InMemory` for disposable tests. Without `-InMemory`, persistence is enabled by default. To start with an empty database rather than the sample, run Java directly with `--database` pointing to a new file and `--python` pointing to Python; the server creates the schema and four demo accounts.[m
+ [m
+[31m-The first launch creates `itsm.sqlite` and four demo accounts. Use employee/emp123, admin/admin123, or tech1/tech123 to follow a ticket through the menus. Each successful change commits immediately. Restart from the same directory to continue. Set the Java system property `itsm.db` to select another file, or `itsm.python` to select a Python executable.[m
+[32m+[m[32mStop the server before backing up `data/itsm.sqlite`, and keep the backup outside the running database path. Preserve `data` when copying the project to retain your records. Run one app server per database file. A revision check rejects stale concurrent writes rather than overwriting newer data.[m
+ [m
+[31m-## Database design[m
+[32m+[m[32mThe original console entry point `itsm.Main` remains available as a separate in-memory program. The persistent frontend uses `itsm.web.WebServer` through the launcher.[m
+ [m
+[31m-SQLite provides transactions and foreign keys in a portable file. The existing Java classes still handle authorization, prioritization, assignment and status transitions. The small Python standard-library adapter in `database/store.py` handles storage without installing a database server or a JDBC driver. The console loads its working set on startup and saves a transactional snapshot after each write. This suits a small classroom dataset. If two consoles edit the same version, the second writer is stopped and must restart before retrying.[m
+[32m+[m[32m## Verification[m
+ [m
+[31m-![Database relationships](database/relationships.png)[m
+[32m+[m[32m728 assertions passed across the existing API/domain/frontend suites and new database tests. The database suite uses a temporary copy of the supplied sample and checks registration, legacy-password compatibility, repeated restarts, complete question/reply exchanges, preserved timestamps/deadlines, profile/password changes, workload, activation, transaction rollback, foreign keys and stale-writer conflicts. The real local app also retained a browser-created test ticket across a server restart.[m
+ [m
+[31m-The accounts table stores the three user roles, department, availability and salted password hashes. Skills are separate rows per technician. Each incident has one reporter and an optional assigned technician. Its response and resolution deadlines are stored when created, along with lifecycle timestamps and resolution notes. Audit records link an actor to an incident. In-app notifications belong to recipients. The existing Java SLA rules supply policy durations. The uploaded application models the affected area using category and business criticality and has no separate service catalog.[m
+[32m+[m[32mAfter compiling, run `python tests/storage_integration_test.py --java <path-to-java.exe>` for the 83 database checks and `python tests/web_api_test.py --java <path-to-java.exe>` for 442 API checks. Frontend/service test commands and remaining domain-policy limitations are documented below.[m
+ [m
+[31m-Open `database/sample.sqlite` in a SQLite viewer for a completed gateway incident, seven audit entries and its notifications. To explore it through the console, copy it to another filename and pass that path with `-Ditsm.db=...` before `-cp`. The default database starts fresh.[m
+[32m+[m[32mSee [frontend/README.md](frontend/README.md) for the incident workflows, API, existing backend limitations, and verification commands.[m
+[1mdiff --git a/database/schema.sql b/database/schema.sql[m
+[1mindex 365800e..74889e0 100644[m
+[1m--- a/database/schema.sql[m
+[1m+++ b/database/schema.sql[m
+[36m@@ -4,3 +4,5 @@[m [mCREATE TABLE IF NOT EXISTS skills(technician TEXT REFERENCES accounts NOT NULL,[m
+ CREATE TABLE IF NOT EXISTS incidents(id TEXT PRIMARY KEY, reporter TEXT REFERENCES accounts NOT NULL, title TEXT NOT NULL, description TEXT NOT NULL, category TEXT NOT NULL, impact INTEGER CHECK(impact BETWEEN 1 AND 5), urgency INTEGER CHECK(urgency BETWEEN 1 AND 5), criticality INTEGER CHECK(criticality BETWEEN 1 AND 5), priority TEXT NOT NULL, status TEXT NOT NULL, technician TEXT REFERENCES accounts, created TEXT NOT NULL, acknowledged TEXT, resolved TEXT, closed TEXT, resolution TEXT, response_due TEXT NOT NULL, resolution_due TEXT NOT NULL);[m
+ CREATE TABLE IF NOT EXISTS audit(at TEXT NOT NULL, actor TEXT REFERENCES accounts NOT NULL, action TEXT NOT NULL, incident TEXT REFERENCES incidents NOT NULL, previous TEXT, current TEXT, description TEXT);[m
+ CREATE TABLE IF NOT EXISTS notifications(recipient TEXT REFERENCES accounts NOT NULL, message TEXT NOT NULL);[m
+[32m+[m[32mCREATE TABLE IF NOT EXISTS information_requests(incident TEXT NOT NULL REFERENCES incidents, request_no INTEGER NOT NULL, technician TEXT NOT NULL REFERENCES accounts, question TEXT NOT NULL, asked_at TEXT NOT NULL, PRIMARY KEY(incident,request_no));[m
+[32m+[m[32mCREATE TABLE IF NOT EXISTS information_replies(incident TEXT NOT NULL, request_no INTEGER NOT NULL, reply_no INTEGER NOT NULL, employee TEXT NOT NULL REFERENCES accounts, text TEXT NOT NULL, replied_at TEXT NOT NULL, PRIMARY KEY(incident,request_no,reply_no), FOREIGN KEY(incident,request_no) REFERENCES information_requests(incident,request_no));[m
+[1mdiff --git a/database/store.py b/database/store.py[m
+[1mindex bfb3193..b088121 100644[m
+[1m--- a/database/store.py[m
+[1m+++ b/database/store.py[m
+[36m@@ -1,10 +1,10 @@[m
+[31m-"""Transactional storage adapter for the Java console. Protocol fields are UTF-8/base64."""[m
+[32m+[m[32m"""Transactional SQLite adapter for Java. Protocol fields are UTF-8/base64."""[m
+ import base64[m
+ from pathlib import Path[m
+ import sqlite3[m
+ import sys[m
+ [m
+[31m-tables = ("accounts", "skills", "incidents", "audit", "notifications")[m
+[32m+[m[32mtables = ("accounts", "skills", "incidents", "audit", "notifications", "information_requests", "information_replies")[m
+ [m
+ def encode(value):[m
+     return "-" if value is None else base64.b64encode(str(value).encode()).decode()[m
+[36m@@ -29,7 +29,7 @@[m [mdef main():[m
+                     print(table, *map(encode,row), sep="\t")[m
+         elif action == "save":[m
+             if version != int(sys.stdin.readline()):[m
+[31m-                raise RuntimeError("Database changed in another console. Restart to reload.")[m
+[32m+[m[32m                raise RuntimeError("STORAGE_CONFLICT: Database changed in another process. Reload before retrying.")[m
+             for table in reversed(tables):[m
+                 db.execute(f"DELETE FROM {table}")[m
+             for line in sys.stdin:[m
+[1mdiff --git a/src/main/java/itsm/console/ConsoleMenu.java b/src/main/java/itsm/console/ConsoleMenu.java[m
+[1mindex 4c4e0d9..5d65943 100644[m
+[1m--- a/src/main/java/itsm/console/ConsoleMenu.java[m
+[1m+++ b/src/main/java/itsm/console/ConsoleMenu.java[m
+[36m@@ -34,8 +34,6 @@[m [mpublic class ConsoleMenu {[m
+     private final IntelligentIncidentService intelligentService;[m
+     private final ReportService reportService;[m
+ [m
+[31m-    private final itsm.persistence.Database database;[m
+[31m-[m
+     public ConsoleMenu() {[m
+         scanner = new Scanner(System.in);[m
+         users = new LinkedHashMap<>();[m
+[36m@@ -45,12 +43,7 @@[m [mpublic class ConsoleMenu {[m
+         notificationService = new NotificationService();[m
+         intelligentService = new IntelligentIncidentService(incidentService, slaService);[m
+         reportService = new ReportService();[m
+[31m-        database = new itsm.persistence.Database(users, incidentService, slaService, auditService, notificationService);[m
+[31m-        database.load();[m
+[31m-        if (users.isEmpty()) {[m
+[31m-            addDemoUsers();[m
+[31m-            database.save();[m
+[31m-        }[m
+[32m+[m[32m        addDemoUsers();[m
+     }[m
+ [m
+     private void addDemoUsers() {[m
+[36m@@ -126,7 +119,6 @@[m [mpublic class ConsoleMenu {[m
+         String id = "E" + String.format("%03d", users.size() + 1);[m
+         Employee employee = new Employee(id, name, username, password, email, department);[m
+         users.put(username, employee);[m
+[31m-        database.save();[m
+         System.out.println("Employee registered. Your user ID is " + id);[m
+     }[m
+ [m
+[36m@@ -155,7 +147,6 @@[m [mpublic class ConsoleMenu {[m
+                     default: System.out.println("Invalid choice.");[m
+                 }[m
+             } catch (RuntimeException ex) {[m
+[31m-                if (ex instanceof java.io.UncheckedIOException) throw ex;[m
+                 System.out.println("Operation failed: " + ex.getMessage());[m
+             }[m
+         }[m
+[36m@@ -178,7 +169,6 @@[m [mpublic class ConsoleMenu {[m
+                 "NONE", incident.getStatus().name(), "Incident reported.");[m
+         notificationService.sendInAppNotification(employee.getUserId(),[m
+                 "Incident " + id + " has been created with priority " + incident.getPriority() + ".");[m
+[31m-        database.save();[m
+         System.out.println("Incident created. ID: " + id[m
+                 + " | Priority: " + incident.getPriority());[m
+         List<Incident> duplicates = intelligentService.findPossibleDuplicates(incident);[m
+[36m@@ -198,7 +188,6 @@[m [mpublic class ConsoleMenu {[m
+         incident.setDescription(incident.getDescription() + "\nAdditional information: " + extra);[m
+         auditService.record(employee.getUserId(), "ADD_INFORMATION", id,[m
+                 incident.getStatus().name(), incident.getStatus().name(), extra);[m
+[31m-        database.save();[m
+         System.out.println("Information added.");[m
+     }[m
+ [m
+[36m@@ -209,7 +198,6 @@[m [mpublic class ConsoleMenu {[m
+         incidentService.verifyIncident(id, employee.getUserId());[m
+         auditService.record(employee.getUserId(), "VERIFY_INCIDENT", id,[m
+                 old.name(), incident.getStatus().name(), "Employee verified resolution.");[m
+[31m-        database.save();[m
+         System.out.println("Incident verified.");[m
+     }[m
+ [m
+[36m@@ -221,7 +209,6 @@[m [mpublic class ConsoleMenu {[m
+         reduceTechnicianWorkload(incident);[m
+         auditService.record(employee.getUserId(), "CLOSE_INCIDENT", id,[m
+                 old.name(), incident.getStatus().name(), "Incident closed.");[m
+[31m-        database.save();[m
+         System.out.println("Incident closed.");[m
+     }[m
+ [m
+[36m@@ -252,7 +239,6 @@[m [mpublic class ConsoleMenu {[m
+                     default: System.out.println("Invalid choice.");[m
+                 }[m
+             } catch (RuntimeException ex) {[m
+[31m-                if (ex instanceof java.io.UncheckedIOException) throw ex;[m
+                 System.out.println("Operation failed: " + ex.getMessage());[m
+             }[m
+         }[m
+[36m@@ -277,7 +263,6 @@[m [mpublic class ConsoleMenu {[m
+                 old.name(), incident.getStatus().name(), "Technician updated incident.");[m
+         notificationService.sendInAppNotification(incident.getEmployeeId(),[m
+                 "Incident " + id + " status is now " + incident.getStatus() + ".");[m
+[31m-        database.save();[m
+         System.out.println("Incident status updated to " + incident.getStatus());[m
+     }[m
+ [m
+[36m@@ -293,7 +278,6 @@[m [mpublic class ConsoleMenu {[m
+                 "Incident " + id + " has been resolved. Please log in to verify it.");[m
+         notificationService.sendInAppNotification(incident.getEmployeeId(),[m
+                 "Incident " + id + " has been resolved.");[m
+[31m-        database.save();[m
+         System.out.println("Incident resolved.");[m
+     }[m
+ [m
+[36m@@ -328,7 +312,6 @@[m [mpublic class ConsoleMenu {[m
+                     default: System.out.println("Invalid choice.");[m
+                 }[m
+             } catch (RuntimeException ex) {[m
+[31m-                if (ex instanceof java.io.UncheckedIOException) throw ex;[m
+                 System.out.println("Operation failed: " + ex.getMessage());[m
+             }[m
+         }[m
+[36m@@ -341,14 +324,12 @@[m [mpublic class ConsoleMenu {[m
+         TechnicianAssignmentStrategy strategy = choice == 1[m
+                 ? new SkillBasedAssignment() : new LoadBasedAssignment();[m
+         Incident incident = incidentService.getIncident(id);[m
+[31m-        String previousStatus = incident.getStatus().name();[m
+         Incident assigned = incidentService.assignIncident(id, getTechnicians(), strategy);[m
+         auditService.record(administrator.getUserId(), "ASSIGN_INCIDENT", id,[m
+[31m-                previousStatus, assigned.getStatus().name(),[m
+[32m+[m[32m                incident.getStatus().name(), assigned.getStatus().name(),[m
+                 "Assigned using " + strategy.getStrategyName());[m
+         notificationService.sendInAppNotification(assigned.getTechnicianId(),[m
+                 "Incident " + id + " has been assigned to you.");[m
+[31m-        database.save();[m
+         System.out.println("Assigned to technician ID: " + assigned.getTechnicianId());[m
+     }[m
+ [m
+[36m@@ -392,7 +373,6 @@[m [mpublic class ConsoleMenu {[m
+             notificationService.sendInAppNotification(incident.getEmployeeId(),[m
+                     "Incident " + incident.getIncidentId() + " has been escalated.");[m
+         }[m
+[31m-        database.save();[m
+         System.out.println("Escalated incidents: " + escalated.size());[m
+     }[m
+ [m
+[1mdiff --git a/src/main/java/itsm/model/AuditLog.java b/src/main/java/itsm/model/AuditLog.java[m
+[1mindex 14d4706..2a30681 100644[m
+[1m--- a/src/main/java/itsm/model/AuditLog.java[m
+[1m+++ b/src/main/java/itsm/model/AuditLog.java[m
+[36m@@ -13,12 +13,11 @@[m [mpublic class AuditLog {[m
+ [m
+     public AuditLog(String userId, String action, String incidentId,[m
+                     String previousState, String newState, String description) {[m
+[31m-        this(LocalDateTime.now(), userId, action, incidentId, previousState, newState, description);[m
+[32m+[m[32m        this(userId, action, incidentId, previousState, newState, description, LocalDateTime.now());[m
+     }[m
+[31m-[m
+[31m-    public AuditLog(LocalDateTime timestamp, String userId, String action, String incidentId,[m
+[31m-                    String previousState, String newState, String description) {[m
+[31m-        this.timestamp = timestamp;[m
+[32m+[m[32m    public AuditLog(String userId, String action, String incidentId,[m
+[32m+[m[32m                    String previousState, String newState, String description, LocalDateTime timestamp) {[m
+[32m+[m[32m        this.timestamp = java.util.Objects.requireNonNull(timestamp);[m
+         this.userId = userId;[m
+         this.action = action;[m
+         this.incidentId = incidentId;[m
+[1mdiff --git a/src/main/java/itsm/model/Incident.java b/src/main/java/itsm/model/Incident.java[m
+[1mindex ca69073..e8b1d44 100644[m
+[1m--- a/src/main/java/itsm/model/Incident.java[m
+[1m+++ b/src/main/java/itsm/model/Incident.java[m
+[36m@@ -1,6 +1,8 @@[m
+ package itsm.model;[m
+ [m
+ import java.time.LocalDateTime;[m
+[32m+[m[32mimport java.util.ArrayList;[m
+[32m+[m[32mimport java.util.List;[m
+ [m
+ public class Incident {[m
+     public enum Category {[m
+[36m@@ -35,15 +37,28 @@[m [mpublic class Incident {[m
+     private Priority priority;[m
+     private Status status;[m
+     private String technicianId;[m
+[31m-    private LocalDateTime createdAt;[m
+[32m+[m[32m    private final LocalDateTime createdAt;[m
+     private LocalDateTime acknowledgedAt;[m
+     private LocalDateTime resolvedAt;[m
+     private LocalDateTime closedAt;[m
+     private String resolutionNotes;[m
+[32m+[m[32m    private final List<InformationRequest> informationRequests = new ArrayList<>();[m
+[32m+[m
+[32m+[m[32m    public List<InformationRequest> getInformationRequests() { return List.copyOf(informationRequests); }[m
+[32m+[m[32m    public void addInformationRequest(InformationRequest request) {[m
+[32m+[m[32m        if (request == null) throw new IllegalArgumentException("Information request is required.");[m
+[32m+[m[32m        informationRequests.add(request);[m
+[32m+[m[32m    }[m
+ [m
+     public Incident(String incidentId, String employeeId, String title,[m
+                     String description, Category category, int impact,[m
+                     int urgency, int businessCriticality) {[m
+[32m+[m[32m        this(incidentId, employeeId, title, description, category, impact, urgency, businessCriticality, LocalDateTime.now());[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    public Incident(String incidentId, String employeeId, String title,[m
+[32m+[m[32m                    String description, Category category, int impact,[m
+[32m+[m[32m                    int urgency, int businessCriticality, LocalDateTime createdAt) {[m
+         if (isBlank(incidentId) || isBlank(employeeId)[m
+                 || isBlank(title) || isBlank(description)) {[m
+             throw new IllegalArgumentException("Incident details cannot be empty.");[m
+[36m@@ -62,7 +77,7 @@[m [mpublic class Incident {[m
+         this.urgency = urgency;[m
+         this.businessCriticality = businessCriticality;[m
+         this.status = Status.NEW;[m
+[31m-        this.createdAt = LocalDateTime.now();[m
+[32m+[m[32m        this.createdAt = java.util.Objects.requireNonNull(createdAt);[m
+     }[m
+ [m
+     private void validateScore(int score) {[m
+[36m@@ -158,8 +173,6 @@[m [mpublic class Incident {[m
+         this.technicianId = technicianId;[m
+     }[m
+ [m
+[31m-    public void restoreCreatedAt(LocalDateTime value) { createdAt = value; }[m
+[31m-[m
+     public LocalDateTime getCreatedAt() {[m
+         return createdAt;[m
+     }[m
+[1mdiff --git a/src/main/java/itsm/model/PasswordHash.java b/src/main/java/itsm/model/PasswordHash.java[m
+[1mindex cee7337..4de1068 100644[m
+[1m--- a/src/main/java/itsm/model/PasswordHash.java[m
+[1m+++ b/src/main/java/itsm/model/PasswordHash.java[m
+[36m@@ -1,33 +1,37 @@[m
+ package itsm.model;[m
+ [m
+[31m-import java.security.*;[m
+[32m+[m[32mimport java.security.MessageDigest;[m
+[32m+[m[32mimport java.security.SecureRandom;[m
+ import java.util.Base64;[m
+ import javax.crypto.SecretKeyFactory;[m
+ import javax.crypto.spec.PBEKeySpec;[m
+ [m
+[32m+[m[32m/** PBKDF2 encoding compatible with the supplied database's salt:hash records. */[m
+ final class PasswordHash {[m
+[31m-    private static byte[] derive(String password, byte[] salt) {[m
+[31m-        PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 210000, 256);[m
+[32m+[m[32m    private static final int ITERATIONS = 210000;[m
+[32m+[m[32m    static String encode(String password) {[m
+[32m+[m[32m        byte[] salt = new byte[16]; new SecureRandom().nextBytes(salt);[m
+[32m+[m[32m        return "pbkdf2-sha256$" + ITERATIONS + "$" + Base64.getEncoder().encodeToString(salt) + "$" + Base64.getEncoder().encodeToString(derive(password, salt, ITERATIONS));[m
+[32m+[m[32m    }[m
+[32m+[m[32m    static boolean valid(String encoded) {[m
+         try {[m
+[31m-            return SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).getEncoded();[m
+[31m-        } catch (GeneralSecurityException ex) {[m
+[31m-            throw new IllegalStateException(ex);[m
+[31m-        } finally {[m
+[31m-            spec.clearPassword();[m
+[31m-        }[m
+[32m+[m[32m            String[] parts = encoded.startsWith("pbkdf2-sha256$") ? encoded.split("\\$") : encoded.split(":");[m
+[32m+[m[32m            if (parts.length != 2 && parts.length != 4) return false;[m
+[32m+[m[32m            int count = parts.length == 4 ? Integer.parseInt(parts[1]) : ITERATIONS;[m
+[32m+[m[32m            return count >= 10000 && count <= 2000000 && Base64.getDecoder().decode(parts[parts.length - 2]).length == 16 && Base64.getDecoder().decode(parts[parts.length - 1]).length == 32;[m
+[32m+[m[32m        } catch (RuntimeException error) { return false; }[m
+     }[m
+[31m-[m
+[31m-    static String create(String password) {[m
+[31m-        byte[] salt = new byte[16];[m
+[31m-        new SecureRandom().nextBytes(salt);[m
+[31m-        return Base64.getEncoder().encodeToString(salt) + ":" +[m
+[31m-                Base64.getEncoder().encodeToString(derive(password, salt));[m
+[32m+[m[32m    static boolean matches(String password, String encoded) {[m
+[32m+[m[32m        if (password == null || !valid(encoded)) return false;[m
+[32m+[m[32m        String[] parts = encoded.startsWith("pbkdf2-sha256$") ? encoded.split("\\$") : encoded.split(":");[m
+[32m+[m[32m        int count = parts.length == 4 ? Integer.parseInt(parts[1]) : ITERATIONS;[m
+[32m+[m[32m        byte[] salt = Base64.getDecoder().decode(parts[parts.length - 2]), expected = Base64.getDecoder().decode(parts[parts.length - 1]);[m
+[32m+[m[32m        return MessageDigest.isEqual(expected, derive(password, salt, count));[m
+     }[m
+[31m-[m
+[31m-    static boolean matches(String password, String hash) {[m
+[31m-        if (password == null) return false;[m
+[31m-        String[] parts = hash.split(":");[m
+[31m-        return MessageDigest.isEqual(Base64.getDecoder().decode(parts[1]),[m
+[31m-                derive(password, Base64.getDecoder().decode(parts[0])));[m
+[32m+[m[32m    private static byte[] derive(String password, byte[] salt, int count) {[m
+[32m+[m[32m        PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, count, 256);[m
+[32m+[m[32m        try { return SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).getEncoded(); }[m
+[32m+[m[32m        catch (Exception error) { throw new IllegalStateException("Password hashing is unavailable.", error); }[m
+[32m+[m[32m        finally { spec.clearPassword(); }[m
+     }[m
+ }[m
+[1mdiff --git a/src/main/java/itsm/model/Technician.java b/src/main/java/itsm/model/Technician.java[m
+[1mindex ff1d30a..952fef0 100644[m
+[1m--- a/src/main/java/itsm/model/Technician.java[m
+[1m+++ b/src/main/java/itsm/model/Technician.java[m
+[36m@@ -55,6 +55,7 @@[m [mpublic class Technician extends User {[m
+     public boolean isAvailable() {[m
+         return available && isActive();[m
+     }[m
+[32m+[m[32m    public boolean isMarkedAvailable() { return available; }[m
+ [m
+     public void setAvailable(boolean available) {[m
+         this.available = available;[m
+[1mdiff --git a/src/main/java/itsm/model/User.java b/src/main/java/itsm/model/User.java[m
+[1mindex 484662d..625d214 100644[m
+[1m--- a/src/main/java/itsm/model/User.java[m
+[1m+++ b/src/main/java/itsm/model/User.java[m
+[36m@@ -18,7 +18,7 @@[m [mpublic abstract class User {[m
+         this.userId = userId;[m
+         this.name = name;[m
+         this.username = username;[m
+[31m-        this.password = PasswordHash.create(password);[m
+[32m+[m[32m        this.password = PasswordHash.encode(password);[m
+         this.email = email;[m
+         this.active = true;[m
+     }[m
+[36m@@ -60,12 +60,15 @@[m [mpublic abstract class User {[m
+         if (isBlank(newPassword)) {[m
+             throw new IllegalArgumentException("New password cannot be empty.");[m
+         }[m
+[31m-        this.password = PasswordHash.create(newPassword);[m
+[32m+[m[32m        this.password = PasswordHash.encode(newPassword);[m
+     }[m
+ [m
+[32m+[m[32m    /** Persistence only; never include this value in API responses or logs. */[m
+     public String getPasswordHash() { return password; }[m
+[31m-[m
+[31m-    public void restorePasswordHash(String hash) { this.password = hash; }[m
+[32m+[m[32m    public void restorePasswordHash(String encoded) {[m
+[32m+[m[32m        if (!PasswordHash.valid(encoded)) throw new IllegalArgumentException("Unsupported stored password format.");[m
+[32m+[m[32m        password = encoded;[m
+[32m+[m[32m    }[m
+ [m
+     public String getEmail() {[m
+         return email;[m
+[1mdiff --git a/src/main/java/itsm/service/AuditService.java b/src/main/java/itsm/service/AuditService.java[m
+[1mindex cefda48..3e1f6f0 100644[m
+[1m--- a/src/main/java/itsm/service/AuditService.java[m
+[1m+++ b/src/main/java/itsm/service/AuditService.java[m
+[36m@@ -12,8 +12,6 @@[m [mpublic class AuditService {[m
+         logs = new ArrayList<>();[m
+     }[m
+ [m
+[31m-    public void restore(AuditLog log) { logs.add(log); }[m
+[31m-[m
+     public void record(String userId, String action, String incidentId,[m
+                        String previousState, String newState, String description) {[m
+         logs.add(new AuditLog(userId, action, incidentId,[m
+[36m@@ -23,6 +21,7 @@[m [mpublic class AuditService {[m
+     public List<AuditLog> getAllLogs() {[m
+         return new ArrayList<>(logs);[m
+     }[m
+[32m+[m[32m    public void restoreLog(AuditLog log) { logs.add(java.util.Objects.requireNonNull(log)); }[m
+ [m
+     public List<AuditLog> getLogsForIncident(String incidentId) {[m
+         List<AuditLog> result = new ArrayList<>();[m
+[1mdiff --git a/src/main/java/itsm/service/IncidentService.java b/src/main/java/itsm/service/IncidentService.java[m
+[1mindex a144896..c47c10c 100644[m
+[1m--- a/src/main/java/itsm/service/IncidentService.java[m
+[1m+++ b/src/main/java/itsm/service/IncidentService.java[m
+[36m@@ -20,8 +20,6 @@[m [mpublic class IncidentService {[m
+         priorityCalculator = new PriorityCalculator();[m
+     }[m
+ [m
+[31m-    public void restore(Incident incident) { incidents.put(incident.getIncidentId(), incident); }[m
+[31m-[m
+     public Incident createIncident(Incident incident) {[m
+         if (incident == null) {[m
+             throw new IllegalArgumentException("Incident cannot be null.");[m
+[36m@@ -48,6 +46,10 @@[m [mpublic class IncidentService {[m
+         return incident;[m
+     }[m
+ [m
+[32m+[m[32m    public void restoreIncident(Incident incident) {[m
+[32m+[m[32m        if (incident == null || incidents.putIfAbsent(incident.getIncidentId(), incident) != null) throw new IllegalArgumentException("Invalid stored incident.");[m
+[32m+[m[32m    }[m
+[32m+[m
+     public List<Incident> getAllIncidents() {[m
+         return new ArrayList<>(incidents.values());[m
+     }[m
+[36m@@ -112,12 +114,28 @@[m [mpublic class IncidentService {[m
+     }[m
+ [m
+     public void requestEmployeeInformation(String incidentId, String technicianId) {[m
+[32m+[m[32m        requestEmployeeInformation(incidentId, technicianId, "Please provide more details about the issue.");[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    public void requestEmployeeInformation(String incidentId, String technicianId, String question) {[m
+         Incident incident = getIncident(incidentId);[m
+         requireAssignedTechnician(incident, technicianId);[m
+         requireStatus(incident, Incident.Status.IN_PROGRESS);[m
+[32m+[m[32m        incident.addInformationRequest(new itsm.model.InformationRequest(technicianId, question));[m
+         incident.setStatus(Incident.Status.WAITING_FOR_EMPLOYEE);[m
+     }[m
+ [m
+[32m+[m[32m    public void addEmployeeInformation(String incidentId, String employeeId, String notes) {[m
+[32m+[m[32m        Incident incident = getIncident(incidentId);[m
+[32m+[m[32m        if (!incident.getEmployeeId().equals(employeeId)) throw new IllegalArgumentException("Only the reporting employee can add information.");[m
+[32m+[m[32m        if (notes == null || notes.isBlank()) throw new IllegalArgumentException("Additional information is required.");[m
+[32m+[m[32m        var requests = incident.getInformationRequests();[m
+[32m+[m[32m        if (incident.getStatus() == Incident.Status.WAITING_FOR_EMPLOYEE && !requests.isEmpty()) {[m
+[32m+[m[32m            requests.get(requests.size() - 1).addReply(employeeId, notes);[m
+[32m+[m[32m        }[m
+[32m+[m[32m        incident.setDescription(incident.getDescription() + "\nAdditional information: " + notes.trim());[m
+[32m+[m[32m    }[m
+[32m+[m
+     public void resumeInvestigation(String incidentId, String technicianId) {[m
+         Incident incident = getIncident(incidentId);[m
+         requireAssignedTechnician(incident, technicianId);[m
+[1mdiff --git a/src/main/java/itsm/service/NotificationService.java b/src/main/java/itsm/service/NotificationService.java[m
+[1mindex 86dbeae..840a7b7 100644[m
+[1m--- a/src/main/java/itsm/service/NotificationService.java[m
+[1m+++ b/src/main/java/itsm/service/NotificationService.java[m
+[36m@@ -11,8 +11,6 @@[m [mpublic class NotificationService {[m
+         inAppNotifications = new ArrayList<>();[m
+     }[m
+ [m
+[31m-    public void restore(String message) { inAppNotifications.add(message); }[m
+[31m-[m
+     public void sendConsoleNotification(String recipient, String message) {[m
+         validate(recipient, message);[m
+         System.out.println("\n[CONSOLE NOTIFICATION] To: " + recipient);[m
+[36m@@ -40,6 +38,7 @@[m [mpublic class NotificationService {[m
+     public List<String> getAllInAppNotifications() {[m
+         return new ArrayList<>(inAppNotifications);[m
+     }[m
+[32m+[m[32m    public void restoreNotification(String message) { inAppNotifications.add(java.util.Objects.requireNonNull(message)); }[m
+ [m
+     private void validate(String recipient, String message) {[m
+         if (recipient == null || recipient.trim().isEmpty()[m
+[1mdiff --git a/src/main/java/itsm/service/SLAService.java b/src/main/java/itsm/service/SLAService.java[m
+[1mindex b91d8b3..f90dd55 100644[m
+[1m--- a/src/main/java/itsm/service/SLAService.java[m
+[1m+++ b/src/main/java/itsm/service/SLAService.java[m
+[36m@@ -25,10 +25,6 @@[m [mpublic class SLAService {[m
+         slaRecords = new HashMap<>();[m
+     }[m
+ [m
+[31m-    public void restore(String id, LocalDateTime response, LocalDateTime resolution) {[m
+[31m-        slaRecords.put(id, new SLADetails(response, resolution));[m
+[31m-    }[m
+[31m-[m
+     public void startTracking(Incident incident) {[m
+         if (incident == null || incident.getPriority() == null) {[m
+             throw new IllegalArgumentException("A classified incident is required.");[m
+[36m@@ -67,6 +63,9 @@[m [mpublic class SLAService {[m
+     public LocalDateTime getResponseDeadline(String incidentId) {[m
+         return getDetails(incidentId).responseDeadline;[m
+     }[m
+[32m+[m[32m    public void restoreTracking(String incidentId, LocalDateTime response, LocalDateTime resolution) {[m
+[32m+[m[32m        slaRecords.put(incidentId, new SLADetails(java.util.Objects.requireNonNull(response), java.util.Objects.requireNonNull(resolution)));[m
+[32m+[m[32m    }[m
+ [m
+     public LocalDateTime getResolutionDeadline(String incidentId) {[m
+         return getDetails(incidentId).resolutionDeadline;[m

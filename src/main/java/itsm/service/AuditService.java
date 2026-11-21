@@ -12,8 +12,6 @@ public class AuditService {
         logs = new ArrayList<>();
     }
 
-    public void restore(AuditLog log) { logs.add(log); }
-
     public void record(String userId, String action, String incidentId,
                        String previousState, String newState, String description) {
         logs.add(new AuditLog(userId, action, incidentId,
@@ -23,6 +21,7 @@ public class AuditService {
     public List<AuditLog> getAllLogs() {
         return new ArrayList<>(logs);
     }
+    public void restoreLog(AuditLog log) { logs.add(java.util.Objects.requireNonNull(log)); }
 
     public List<AuditLog> getLogsForIncident(String incidentId) {
         List<AuditLog> result = new ArrayList<>();

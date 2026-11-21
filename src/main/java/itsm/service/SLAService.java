@@ -25,10 +25,6 @@ public class SLAService {
         slaRecords = new HashMap<>();
     }
 
-    public void restore(String id, LocalDateTime response, LocalDateTime resolution) {
-        slaRecords.put(id, new SLADetails(response, resolution));
-    }
-
     public void startTracking(Incident incident) {
         if (incident == null || incident.getPriority() == null) {
             throw new IllegalArgumentException("A classified incident is required.");
@@ -66,6 +62,9 @@ public class SLAService {
 
     public LocalDateTime getResponseDeadline(String incidentId) {
         return getDetails(incidentId).responseDeadline;
+    }
+    public void restoreTracking(String incidentId, LocalDateTime response, LocalDateTime resolution) {
+        slaRecords.put(incidentId, new SLADetails(java.util.Objects.requireNonNull(response), java.util.Objects.requireNonNull(resolution)));
     }
 
     public LocalDateTime getResolutionDeadline(String incidentId) {

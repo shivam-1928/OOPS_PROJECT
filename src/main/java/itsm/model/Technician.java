@@ -55,6 +55,7 @@ public class Technician extends User {
     public boolean isAvailable() {
         return available && isActive();
     }
+    public boolean isMarkedAvailable() { return available; }
 
     public void setAvailable(boolean available) {
         this.available = available;

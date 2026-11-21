@@ -1,6 +1,8 @@
 package itsm.model;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Incident {
     public enum Category {
@@ -35,15 +37,28 @@ public class Incident {
     private Priority priority;
     private Status status;
     private String technicianId;
-    private LocalDateTime createdAt;
+    private final LocalDateTime createdAt;
     private LocalDateTime acknowledgedAt;
     private LocalDateTime resolvedAt;
     private LocalDateTime closedAt;
     private String resolutionNotes;
+    private final List<InformationRequest> informationRequests = new ArrayList<>();
+
+    public List<InformationRequest> getInformationRequests() { return List.copyOf(informationRequests); }
+    public void addInformationRequest(InformationRequest request) {
+        if (request == null) throw new IllegalArgumentException("Information request is required.");
+        informationRequests.add(request);
+    }
 
     public Incident(String incidentId, String employeeId, String title,
                     String description, Category category, int impact,
                     int urgency, int businessCriticality) {
+        this(incidentId, employeeId, title, description, category, impact, urgency, businessCriticality, LocalDateTime.now());
+    }
+
+    public Incident(String incidentId, String employeeId, String title,
+                    String description, Category category, int impact,
+                    int urgency, int businessCriticality, LocalDateTime createdAt) {
         if (isBlank(incidentId) || isBlank(employeeId)
                 || isBlank(title) || isBlank(description)) {
             throw new IllegalArgumentException("Incident details cannot be empty.");
@@ -62,7 +77,7 @@ public class Incident {
         this.urgency = urgency;
         this.businessCriticality = businessCriticality;
         this.status = Status.NEW;
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = java.util.Objects.requireNonNull(createdAt);
     }
 
     private void validateScore(int score) {
@@ -157,8 +172,6 @@ public class Incident {
     public void setTechnicianId(String technicianId) {
         this.technicianId = technicianId;
     }
-
-    public void restoreCreatedAt(LocalDateTime value) { createdAt = value; }
 
     public LocalDateTime getCreatedAt() {
         return createdAt;

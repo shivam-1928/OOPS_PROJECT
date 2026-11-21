@@ -1,10 +1,10 @@
-"""Transactional storage adapter for the Java console. Protocol fields are UTF-8/base64."""
+"""Transactional SQLite adapter for Java. Protocol fields are UTF-8/base64."""
 import base64
 from pathlib import Path
 import sqlite3
 import sys
 
-tables = ("accounts", "skills", "incidents", "audit", "notifications")
+tables = ("accounts", "skills", "incidents", "audit", "notifications", "information_requests", "information_replies")
 
 def encode(value):
     return "-" if value is None else base64.b64encode(str(value).encode()).decode()
@@ -29,7 +29,7 @@ def main():
                     print(table, *map(encode,row), sep="\t")
         elif action == "save":
             if version != int(sys.stdin.readline()):
-                raise RuntimeError("Database changed in another console. Restart to reload.")
+                raise RuntimeError("STORAGE_CONFLICT: Database changed in another process. Reload before retrying.")
             for table in reversed(tables):
                 db.execute(f"DELETE FROM {table}")
             for line in sys.stdin:

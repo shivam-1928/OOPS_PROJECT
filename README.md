@@ -1,28 +1,29 @@
-# OOPS_PROJECT
-## Run the database-backed console
+# I-ITSM course project
 
-Install JDK 17 or later and Python 3.8 or later. Run these commands **from the project root** (the directory containing `src` and `database`).
+Java incident-management services with a browser frontend and persistent SQLite storage, using the supplied `database/store.py` adapter. The updated backend workflows remain in place.
 
-**Windows PowerShell**
+## Run the web application
+
 ```powershell
-javac -d out (Get-ChildItem -Recurse src -Filter *.java).FullName
-java -cp out itsm.Main
+.\start-web.ps1 -Port 8085
 ```
 
-**Linux/macOS**
-```sh
-javac -d out $(find src -name '*.java')
-java -Ditsm.python=python3 -cp out itsm.Main
-```
+Open **http://127.0.0.1:8085/**. Requires Java 17 or newer and Python 3 (standard library only). A JDK 21 and bundled Python fallback are configured for this machine. The launcher compiles sources automatically. The port defaults to 8080 if omitted.
 
-The first launch creates `itsm.sqlite` and four demo accounts. Use employee/emp123, admin/admin123, or tech1/tech123 to follow a ticket through the menus. Each successful change commits immediately. Restart from the same directory to continue. Set the Java system property `itsm.db` to select another file, or `itsm.python` to select a Python executable.
+Use employee/emp123, admin/admin123, tech1/tech123, or tech2/tech123. Employee sign-up now creates persistent accounts. Profile/password changes, activation status, technician skills/availability, incidents, original timestamps/deadlines, audit records, notifications, questions and replies survive restarts. Sessions intentionally end when the server stops; sign in again afterward.
 
-## Database design
+The active database is `data/itsm.sqlite`. On the first launch only, the launcher copies the supplied `database/sample.sqlite` there; subsequent launches reuse the existing file. The sample and prior local servers' records are not overwritten. Earlier in-memory demo servers do not automatically migrate into this database. Use the current address above for persistent work.
 
-SQLite provides transactions and foreign keys in a portable file. The existing Java classes still handle authorization, prioritization, assignment and status transitions. The small Python standard-library adapter in `database/store.py` handles storage without installing a database server or a JDBC driver. The console loads its working set on startup and saves a transactional snapshot after each write. This suits a small classroom dataset. If two consoles edit the same version, the second writer is stopped and must restart before retrying.
+Optional launcher parameters: `-DatabasePath <path>`, `-PythonPath <python.exe>`, and `-InMemory` for disposable tests. Without `-InMemory`, persistence is enabled by default. To start with an empty database rather than the sample, run Java directly with `--database` pointing to a new file and `--python` pointing to Python; the server creates the schema and four demo accounts.
 
-![Database relationships](database/relationships.png)
+Stop the server before backing up `data/itsm.sqlite`, and keep the backup outside the running database path. Preserve `data` when copying the project to retain your records. Run one app server per database file. A revision check rejects stale concurrent writes rather than overwriting newer data.
 
-The accounts table stores the three user roles, department, availability and salted password hashes. Skills are separate rows per technician. Each incident has one reporter and an optional assigned technician. Its response and resolution deadlines are stored when created, along with lifecycle timestamps and resolution notes. Audit records link an actor to an incident. In-app notifications belong to recipients. The existing Java SLA rules supply policy durations. The uploaded application models the affected area using category and business criticality and has no separate service catalog.
+The original console entry point `itsm.Main` remains available as a separate in-memory program. The persistent frontend uses `itsm.web.WebServer` through the launcher.
 
-Open `database/sample.sqlite` in a SQLite viewer for a completed gateway incident, seven audit entries and its notifications. To explore it through the console, copy it to another filename and pass that path with `-Ditsm.db=...` before `-cp`. The default database starts fresh.
+## Verification
+
+728 assertions passed across the existing API/domain/frontend suites and new database tests. The database suite uses a temporary copy of the supplied sample and checks registration, legacy-password compatibility, repeated restarts, complete question/reply exchanges, preserved timestamps/deadlines, profile/password changes, workload, activation, transaction rollback, foreign keys and stale-writer conflicts. The real local app also retained a browser-created test ticket across a server restart.
+
+After compiling, run `python tests/storage_integration_test.py --java <path-to-java.exe>` for the 83 database checks and `python tests/web_api_test.py --java <path-to-java.exe>` for 442 API checks. Frontend/service test commands and remaining domain-policy limitations are documented below.
+
+See [frontend/README.md](frontend/README.md) for the incident workflows, API, existing backend limitations, and verification commands.

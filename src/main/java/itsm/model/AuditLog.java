@@ -13,12 +13,11 @@ public class AuditLog {
 
     public AuditLog(String userId, String action, String incidentId,
                     String previousState, String newState, String description) {
-        this(LocalDateTime.now(), userId, action, incidentId, previousState, newState, description);
+        this(userId, action, incidentId, previousState, newState, description, LocalDateTime.now());
     }
-
-    public AuditLog(LocalDateTime timestamp, String userId, String action, String incidentId,
-                    String previousState, String newState, String description) {
-        this.timestamp = timestamp;
+    public AuditLog(String userId, String action, String incidentId,
+                    String previousState, String newState, String description, LocalDateTime timestamp) {
+        this.timestamp = java.util.Objects.requireNonNull(timestamp);
         this.userId = userId;
         this.action = action;
         this.incidentId = incidentId;

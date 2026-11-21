@@ -11,8 +11,6 @@ public class NotificationService {
         inAppNotifications = new ArrayList<>();
     }
 
-    public void restore(String message) { inAppNotifications.add(message); }
-
     public void sendConsoleNotification(String recipient, String message) {
         validate(recipient, message);
         System.out.println("\n[CONSOLE NOTIFICATION] To: " + recipient);
@@ -40,6 +38,7 @@ public class NotificationService {
     public List<String> getAllInAppNotifications() {
         return new ArrayList<>(inAppNotifications);
     }
+    public void restoreNotification(String message) { inAppNotifications.add(java.util.Objects.requireNonNull(message)); }
 
     private void validate(String recipient, String message) {
         if (recipient == null || recipient.trim().isEmpty()
