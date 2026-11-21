@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en" class="auth-check">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#262626">
+  <title>Incidents · I-ITSM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Playfair+Display:wght@500&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>html.auth-check body{visibility:hidden}</style>
+  <script src="api.js" defer></script>
+  <script src="app.js" defer></script>
+  <script src="incidents.js" defer></script>
+  <script src="technicians.js" defer></script>
+  <script src="sla.js" defer></script>
+  <script src="reports-audit.js" defer></script>
+  <script src="notifications.js" defer></script>
+  <script src="overview.js" defer></script>
+  <script src="accounts.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <aside class="sidebar" aria-label="Application sidebar">
+    <button class="brand" aria-label="Keep navigation expanded" aria-expanded="false" aria-controls="navigation">
+      <span class="brand-symbol" aria-hidden="true">it<span>·</span></span>
+      <span class="nav-label brand-name">I-ITSM</span>
+    </button>
+    <div class="sidebar-rule"></div>
+    <nav id="navigation" aria-label="Main navigation">
+      <div class="nav-section"><span class="nav-label">Workspace</span></div>
+      <button class="nav-item" data-section="Overview" aria-label="Overview"><img src="assets/icons/home.png" alt=""><span class="nav-label">Overview</span></button>
+      <button class="nav-item active" data-section="Incidents" aria-label="Incidents" aria-current="page"><img src="assets/icons/incidents.png" alt=""><span class="nav-label">Incidents</span><span class="nav-label active-mark" aria-hidden="true"></span></button>
+      <button class="nav-item" data-section="Technicians" aria-label="Technicians"><img src="assets/icons/technicians.png" alt=""><span class="nav-label">Technicians</span></button>
+      <button class="nav-item" id="users-nav" data-section="Users" aria-label="Users" hidden><img src="assets/icons/profile.png" alt=""><span class="nav-label">Users</span></button>
+      <button class="nav-item" data-section="SLA monitoring" aria-label="SLA monitoring"><img src="assets/icons/sla.png" alt=""><span class="nav-label">SLA monitoring</span></button>
+      <div class="nav-section second-section"><span class="nav-label">Insights</span></div>
+      <button class="nav-item" data-section="Reports" aria-label="Reports"><img src="assets/icons/reports.png" alt=""><span class="nav-label">Reports</span></button>
+      <button class="nav-item" data-section="Audit trail" aria-label="Audit trail"><img src="assets/icons/audit.png" alt=""><span class="nav-label">Audit trail</span></button>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="nav-item" id="notifications-nav" data-section="Notifications" aria-label="Notifications"><span class="notification-nav-symbol"><img src="assets/icons/notifications.png" alt=""><span id="notification-unread-dot" class="notification-unread-dot" aria-hidden="true" hidden></span><span id="notification-p1-hazard" class="notification-p1-hazard" aria-hidden="true" hidden><svg viewBox="0 0 24 22" width="20" height="19"><path d="M10.3 2.4a2 2 0 0 1 3.4 0l9 15.1a2 2 0 0 1-1.7 3H3a2 2 0 0 1-1.7-3z" fill="#ffd65a" stroke="#262626" stroke-width="1.5"/><path d="M12 7v6" stroke="#262626" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16.5" r="1.1" fill="#262626"/></svg></span></span><span class="nav-label">Notifications</span></button>
+      <div class="sidebar-rule"></div>
+      <div class="account"><span class="avatar account-avatar" aria-hidden="true">?</span><span class="nav-label account-name"><span id="account-name">Not signed in</span><small id="account-role">Service desk</small></span></div>
+    </div>
+  </aside>
+
+  <div class="workspace">
+    <header class="topbar">
+      <div class="breadcrumb">Workspace <span aria-hidden="true">/</span> <strong id="breadcrumb-current">Incidents</strong></div>
+      <div class="profile-control"><button class="profile-button" id="profile-button" aria-label="Open profile" aria-expanded="false" aria-controls="profile-panel"><span aria-hidden="true">A</span></button><div id="profile-panel" class="profile-panel" hidden><strong id="profile-name">Not signed in</strong><span id="profile-role"></span><button id="open-profile-settings" class="text-button">Profile & account</button><button id="logout" class="text-button" hidden>Sign out</button></div></div>
+    </header>
+    <main id="main" tabindex="-1">
+      <div class="page-heading"><div><p class="eyebrow">Service desk</p><h1 id="page-title" class="incident-heading">Incidents</h1></div><button id="new-incident" class="primary-button" hidden>Report incident</button></div>
+      <div id="notice" class="notice" role="status" tabindex="-1" hidden></div>
+      <div id="account-workspace" hidden>
+        <p id="account-feedback" class="notice" role="status" hidden></p>
+        <div class="account-settings-grid">
+          <section class="account-settings-section" aria-labelledby="profile-edit-title"><h2 id="profile-edit-title">Your profile</h2><p id="account-identity" class="muted"></p>
+            <form id="profile-edit-form" class="account-form"><label>Name<input name="name" maxlength="120" autocomplete="name" required></label><label>Username<input name="username" minlength="3" maxlength="40" pattern="[A-Za-z0-9._\-]{3,40}" autocomplete="username" required></label><label>Email<input name="email" type="email" maxlength="200" autocomplete="email" required></label><label id="profile-department-label" hidden>Department<input name="department" maxlength="100" autocomplete="organization-title"></label><p id="profile-edit-error" class="form-error" role="alert" hidden></p><button class="primary-button" type="submit">Save profile</button></form>
+          </section>
+          <section class="account-settings-section" aria-labelledby="password-edit-title"><h2 id="password-edit-title">Change password</h2><p class="muted">Use 8–128 characters. Your other signed-in sessions will end after the change.</p>
+            <form id="password-edit-form" class="account-form"><label>Current password<input name="currentPassword" type="password" autocomplete="current-password" required></label><label>New password<input name="newPassword" type="password" minlength="8" maxlength="128" autocomplete="new-password" required></label><label>Confirm new password<input name="confirmPassword" type="password" minlength="8" maxlength="128" autocomplete="new-password" required></label><p id="password-edit-error" class="form-error" role="alert" hidden></p><button class="secondary-button" type="submit">Change password</button></form>
+          </section>
+        </div>
+      </div>
+      <div id="users-workspace" hidden>
+        <div id="users-notice" class="notice" role="status" hidden></div>
+        <div class="incident-summary" aria-label="User summary"><span>Total <strong id="users-total">—</strong></span><span>Active <strong id="users-active">—</strong></span><span>Inactive <strong id="users-inactive">—</strong></span></div>
+        <div class="incident-tools"><label class="search-field"><span class="sr-only">Search users</span><input id="users-search" type="search" placeholder="Search name, ID, username or email"></label><button id="refresh-users" class="secondary-button">Refresh</button></div>
+        <form id="users-filters" class="incident-filters"><label>Role<select name="role"><option value="">All roles</option><option value="EMPLOYEE">Employee</option><option value="TECHNICIAN">Technician</option><option value="ADMINISTRATOR">Administrator</option></select></label><label>Account status<select name="active"><option value="">All accounts</option><option value="true">Active</option><option value="false">Inactive</option></select></label><button type="reset" class="text-button">Clear filters</button></form>
+        <section class="data-register" id="users-register" aria-labelledby="users-title"><div class="table-heading"><h2 id="users-title">Registered users</h2><span id="users-count" class="record-count"></span></div><div class="table-scroll"><table class="users-table"><caption class="sr-only">Administrator user directory and account activation controls.</caption><thead><tr><th>User</th><th>Role</th><th>Contact</th><th>Account status</th><th>Action</th></tr></thead><tbody id="users-rows"></tbody></table></div><p id="users-empty" class="table-state" role="status">Loading users…</p></section>
+      </div>
+      <div id="overview-workspace" hidden>
+        <div class="overview-toolbar"><p id="overview-scope" class="muted">Your service desk at a glance</p><div class="toolbar-actions"><button id="refresh-overview" class="secondary-button">Refresh</button><button id="overview-incidents" class="secondary-button">View incidents →</button><button id="overview-create" class="primary-button" hidden>Report incident</button></div></div>
+        <div id="overview-notice" class="notice error" role="alert" hidden></div>
+        <p id="overview-updated" class="snapshot-time" role="status">Sign in to view your overview.</p>
+        <div class="overview-grid">
+          <aside id="overview-profile" class="overview-profile" aria-labelledby="overview-profile-title"></aside>
+          <div class="overview-main">
+            <div id="overview-summary" class="incident-summary" aria-label="Overview ticket summary"></div>
+            <section id="overview-sla" class="overview-sla" aria-labelledby="overview-sla-title" hidden><h2 id="overview-sla-title">SLA needs attention</h2><p id="overview-sla-count"></p><ul id="overview-sla-items" class="overview-ticket-list"></ul></section>
+            <section class="overview-section" aria-labelledby="overview-attention-title"><div class="overview-section-heading"><h2 id="overview-attention-title">Needs your attention</h2><span id="overview-attention-count" class="record-count"></span></div><ul id="overview-attention-items" class="overview-ticket-list"></ul><p id="overview-attention-empty" class="muted">Sign in to see tickets needing action.</p></section>
+            <section id="overview-continue" class="overview-continue" aria-labelledby="overview-continue-title" hidden><div><h2 id="overview-continue-title">Continue recent ticket</h2><p id="overview-continue-description" class="muted"></p></div><button id="overview-continue-button" class="secondary-button">Open ticket</button></section>
+            <section class="overview-section" aria-labelledby="overview-activity-title"><div class="overview-section-heading"><h2 id="overview-activity-title">Recent ticket activity</h2><span class="record-count">Latest 8 events</span></div><ol id="overview-activity-items" class="overview-activity"></ol><p id="overview-activity-empty" class="muted">No recorded activity yet.</p></section>
+          </div>
+        </div>
+      </div>
+      <div id="incidents-workspace">
+        <div class="incident-summary" aria-label="Incident summary"><span>Total <strong id="summary-total">—</strong></span><span>Open <strong id="summary-open">—</strong></span><span>Resolved <strong id="summary-resolved">—</strong></span><span>Closed <strong id="summary-closed">—</strong></span><span>Critical <strong id="summary-critical">—</strong></span></div>
+        <div class="incident-tools"><label class="search-field"><span class="sr-only">Search incidents by ID or title</span><input id="incident-search" type="search" placeholder="Search ID or title" autocomplete="off"></label><div class="toolbar-actions"><button id="refresh-incidents" class="secondary-button">Refresh</button><button id="incident-notifications" class="secondary-button">Notifications <span id="notification-count">0</span></button><button id="escalate-incidents" class="secondary-button" hidden>Check SLA breaches</button></div></div>
+        <form id="incident-filters" class="incident-filters" aria-label="Filter incidents">
+          <label>Category<select name="category" id="filter-category"><option value="">All categories</option></select></label>
+          <label>Priority<select name="priority"><option value="">All priorities</option><option>P1</option><option>P2</option><option>P3</option><option>P4</option></select></label>
+          <label>Status<select name="status" id="filter-status"><option value="">All statuses</option></select></label>
+          <label>Reporter ID<input name="employeeId" placeholder="e.g. E001" autocomplete="off"></label>
+          <label>Technician<select name="technicianId" id="filter-technician"><option value="">All technicians</option></select></label>
+          <button type="reset" class="text-button">Clear filters</button>
+        </form>
+        <section id="incident-preview" aria-labelledby="table-title" aria-busy="false">
+          <div class="table-heading"><div><h2 id="table-title">Incident register</h2><p id="table-context">Sign in to view incidents.</p></div><label class="sort-control">Sort by<select id="incident-sort"><option value="priority">Highest priority</option><option value="id-asc">Incident ID: ascending</option><option value="id-desc">Incident ID: descending</option><option value="newest">Newest first</option></select></label></div>
+          <div class="table-scroll"><table><caption class="sr-only">Incidents visible to your account. Select an incident ID to view details and available actions.</caption><thead><tr><th scope="col" id="incident-id-header"><button id="sort-incident-id" class="sort-button">Incident ID <span aria-hidden="true" id="sort-indicator">↕</span></button></th><th scope="col">Incident</th><th scope="col">Category</th><th scope="col" id="priority-header" aria-sort="ascending">Priority</th><th scope="col">Status</th><th scope="col">Assigned to</th><th scope="col">SLA</th></tr></thead><tbody id="incident-rows"></tbody></table></div>
+          <div id="table-state" class="table-state" role="status">Sign in to get started.</div>
+          <div class="table-footer"><span id="result-count">0 incidents</span><span>Highest priority first by default</span></div>
+        </section>
+        <p class="storage-note" id="incident-storage-note"></p>
+      </div>
+      <div id="technicians-workspace" hidden>
+        <div id="technician-notice" class="notice" role="status" hidden></div>
+        <div class="incident-summary" aria-label="Technician summary"><span>Technicians <strong id="tech-total">—</strong></span><span>Available <strong id="tech-available">—</strong></span><span>Unavailable <strong id="tech-unavailable">—</strong></span><span>Active assignments <strong id="tech-assignments">—</strong></span></div>
+        <div class="incident-tools technician-tools"><label class="search-field"><span class="sr-only">Search technicians by name, ID or skill</span><input id="technician-search" type="search" placeholder="Search name, ID or skill" autocomplete="off"></label><button id="refresh-technicians" class="secondary-button">Refresh</button></div>
+        <form id="technician-filters" class="incident-filters" aria-label="Filter technicians">
+          <label>Availability<select name="availability"><option value="">All technicians</option><option value="available">Available</option><option value="unavailable">Unavailable</option></select></label>
+          <label>Skill<select id="technician-skill-filter" name="skill"><option value="">All skills</option></select></label>
+          <label>Workload<select name="workload"><option value="">Any workload</option><option value="idle">No active assignments</option><option value="assigned">Has active assignments</option></select></label>
+          <button type="reset" class="text-button">Clear filters</button>
+        </form>
+        <section id="technician-register" class="technician-register" aria-labelledby="technician-table-title" aria-busy="false">
+          <div class="table-heading"><div><h2 id="technician-table-title">Technician directory</h2><p id="technician-context">Skills, availability and current workload</p></div><label class="sort-control">Sort by<select id="technician-sort"><option value="workload">Lowest workload</option><option value="busiest">Highest workload</option><option value="name">Name</option><option value="id">Technician ID</option></select></label></div>
+          <div class="table-scroll"><table class="technician-table"><caption class="sr-only">Technician directory. Select a technician ID to view details.</caption><thead><tr><th scope="col">Technician ID</th><th scope="col" id="tech-name-header">Technician</th><th scope="col">Skills</th><th scope="col">Availability</th><th scope="col" id="tech-workload-header" aria-sort="ascending">Active assignments</th></tr></thead><tbody id="technician-rows"></tbody></table></div>
+          <div id="technician-table-state" class="table-state" role="status">Sign in to view technicians.</div>
+          <div class="table-footer"><span id="technician-result-count">0 technicians</span><span>Workload is managed by the backend.</span></div>
+        </section>
+        <p class="storage-note">Active assignments include resolved incidents awaiting closure. Availability controls new assignments; existing assignments stay with the technician.</p>
+      </div>
+      <div id="sla-workspace" hidden>
+        <div id="sla-notice" class="notice" role="status" hidden></div>
+        <div class="incident-summary" aria-label="SLA summary for active incidents"><span>Active incidents <strong id="sla-active">—</strong></span><span>Within SLA <strong id="sla-within">—</strong></span><span>At risk <strong id="sla-risk">—</strong></span><span>Breached <strong id="sla-breached">—</strong></span></div>
+        <div class="incident-tools sla-tools"><label class="search-field"><span class="sr-only">Search SLA incidents by ID or title</span><input id="sla-search" type="search" placeholder="Search ID or title" autocomplete="off"></label><div class="toolbar-actions"><button id="refresh-sla" class="secondary-button">Refresh</button><button id="escalate-sla" class="secondary-button" hidden>Check SLA breaches</button></div></div>
+        <form id="sla-filters" class="incident-filters" aria-label="Filter SLA incidents">
+          <label>SLA status<select name="slaStatus"><option value="">All SLA states</option><option value="BREACHED">Any breach</option><option value="RESPONSE SLA BREACHED">Response breached</option><option value="RESOLUTION SLA BREACHED">Resolution breached</option><option value="AT RISK">At risk</option><option value="WITHIN SLA">Within SLA</option></select></label>
+          <label>Priority<select name="priority"><option value="">All priorities</option><option>P1</option><option>P2</option><option>P3</option><option>P4</option></select></label>
+          <label>Technician<select name="technicianId" id="sla-technician-filter"><option value="">All technicians</option><option value="UNASSIGNED">Unassigned</option></select></label>
+          <label>Lifecycle<select name="scope"><option value="active">Active incidents</option><option value="completed">Completed incidents</option><option value="all">All incidents</option></select></label>
+          <button type="reset" class="text-button">Clear filters</button>
+        </form>
+        <div class="sla-refresh-bar"><span id="sla-last-updated" role="status">Not refreshed yet</span><label class="sla-auto-refresh"><input id="sla-auto-refresh" type="checkbox" checked> Auto refresh every 30 seconds</label></div>
+        <section id="sla-register" class="sla-register" aria-labelledby="sla-table-title" aria-busy="false">
+          <div class="table-heading"><div><h2 id="sla-table-title">Deadline monitor</h2><p id="sla-context">Response and resolution tracking</p></div><label class="sort-control">Sort by<select id="sla-sort"><option value="attention">Needs attention first</option><option value="deadline">Earliest pending deadline</option><option value="priority">Highest priority</option><option value="id">Incident ID</option></select></label></div>
+          <div class="table-scroll"><table class="sla-table"><caption class="sr-only">Role-visible incidents and their backend SLA status. Select an incident ID for details.</caption><thead><tr><th scope="col">Incident</th><th scope="col">Priority</th><th scope="col">SLA status</th><th scope="col">Response deadline</th><th scope="col">Resolution deadline</th><th scope="col">Technician</th></tr></thead><tbody id="sla-rows"></tbody></table></div>
+          <div id="sla-table-state" class="table-state" role="status">Sign in to view SLA monitoring.</div>
+          <div class="table-footer"><span id="sla-result-count">0 incidents</span><span>Summary counts cover all active incidents visible to you.</span></div>
+        </section>
+        <p class="storage-note">SLA states are checked by the backend on refresh. Checking breaches escalates eligible incidents across the full register, regardless of filters. It does not reassign technicians.</p>
+        <details class="sla-reference"><summary>SLA targets by priority</summary><p class="field-help">Current fixed targets in the Java SLA service, measured from incident creation. Policies are read-only.</p><div class="table-scroll"><table><caption class="sr-only">Current backend response and resolution targets by priority.</caption><thead><tr><th scope="col">Priority</th><th scope="col">Response target</th><th scope="col">Resolution target</th></tr></thead><tbody><tr><td><span class="priority priority-p1">P1 · Critical</span></td><td>5 minutes</td><td>30 minutes</td></tr><tr><td><span class="priority priority-p2">P2 · High</span></td><td>15 minutes</td><td>2 hours</td></tr><tr><td><span class="priority priority-p3">P3 · Medium</span></td><td>1 hour</td><td>8 hours</td></tr><tr><td><span class="priority priority-p4">P4 · Low</span></td><td>4 hours</td><td>24 hours</td></tr></tbody></table></div></details>
+      </div>
+      <div id="reports-workspace" hidden>
+        <div id="reports-notice" class="notice" role="status" hidden></div>
+        <div class="incident-tools"><p id="reports-scope" class="muted">Incident overview</p><div class="toolbar-actions"><button id="refresh-reports" class="secondary-button">Refresh</button><button id="export-reports" class="secondary-button" disabled>Export incidents · CSV</button></div></div>
+        <form id="reports-filters" class="incident-filters" aria-label="Filter incident reports">
+          <label>Created from<input id="reports-from" name="from" type="date"></label><label>Created through<input id="reports-through" name="through" type="date"></label>
+          <label>Category<select id="reports-category" name="category"><option value="">All categories</option></select></label><label>Priority<select name="priority"><option value="">All priorities</option><option>P1</option><option>P2</option><option>P3</option><option>P4</option></select></label>
+          <button type="reset" class="text-button">Clear filters</button>
+        </form>
+        <p id="reports-range-error" class="form-error" role="alert" hidden>Start date cannot be later than end date.</p>
+        <div class="incident-summary" aria-label="Filtered incident summary"><span>Total <strong id="reports-total">—</strong></span><span>Open <strong id="reports-open">—</strong></span><span>Resolved <strong id="reports-resolved">—</strong></span><span>Closed <strong id="reports-closed">—</strong></span><span>Critical <strong id="reports-critical">—</strong></span></div>
+        <p id="reports-state" class="muted" role="status">Sign in to view reports.</p><p id="reports-updated" class="snapshot-time">Not refreshed yet</p>
+        <div class="report-breakdowns">
+          <section class="data-register" aria-labelledby="report-priority-title"><div class="table-heading"><h2 id="report-priority-title">By priority</h2></div><div class="table-scroll"><table class="report-table"><caption class="sr-only">Filtered incident counts by priority.</caption><thead><tr><th scope="col">Priority</th><th scope="col">Total</th><th scope="col">Open</th><th scope="col">Resolved</th><th scope="col">Closed</th></tr></thead><tbody id="report-priority-rows"></tbody></table></div></section>
+          <section class="data-register" aria-labelledby="report-category-title"><div class="table-heading"><h2 id="report-category-title">By category</h2></div><div class="table-scroll"><table class="report-table"><caption class="sr-only">Filtered incident counts by category.</caption><thead><tr><th scope="col">Category</th><th scope="col">Total</th><th scope="col">Open</th><th scope="col">Resolved</th><th scope="col">Closed</th></tr></thead><tbody id="report-category-rows"></tbody></table></div></section>
+        </div>
+        <section class="data-register report-section" aria-labelledby="report-workload-title"><div class="table-heading"><div><h2 id="report-workload-title">Current technician workload</h2><p>Current active assignments across the register, independent of report filters</p></div><button class="text-button" id="report-view-technicians">View technicians</button></div><div class="table-scroll"><table class="report-table"><caption class="sr-only">Current backend technician workload, not filtered by incident creation dates.</caption><thead><tr><th scope="col">Technician</th><th scope="col">Technician ID</th><th scope="col">Active assignments</th><th scope="col">Availability</th></tr></thead><tbody id="report-workload-rows"></tbody></table></div></section>
+        <section class="data-register report-section" aria-labelledby="report-incidents-title"><div class="table-heading"><h2 id="report-incidents-title">Incidents in this report</h2><span id="report-incident-count" class="record-count">0 incidents</span></div><div class="table-scroll"><table class="report-table"><caption class="sr-only">Filtered incidents ordered by highest priority, with links to details.</caption><thead><tr><th scope="col">Incident</th><th scope="col">Category</th><th scope="col">Priority</th><th scope="col">Status</th><th scope="col">Created</th></tr></thead><tbody id="report-incident-rows"></tbody></table></div></section>
+        <p class="storage-note">Resolved totals include verified incidents. Open totals include waiting and escalated incidents. Resolved assignments remain in technician workload until closure.</p>
+      </div>
+      <div id="audit-workspace" hidden>
+        <div id="audit-notice" class="notice" role="status" hidden></div>
+        <div class="incident-summary" aria-label="Recorded history summary"><span>Recorded events <strong id="audit-total">—</strong></span><span>Incidents <strong id="audit-incidents">—</strong></span><span>Actors <strong id="audit-actors">—</strong></span></div>
+        <div class="incident-tools"><label class="search-field"><span class="sr-only">Search audit history</span><input id="audit-search" type="search" placeholder="Search incident, action or notes" autocomplete="off"></label><div class="toolbar-actions"><button id="refresh-audit" class="secondary-button">Refresh</button><button id="export-audit" class="secondary-button" disabled>Export history · CSV</button></div></div>
+        <form id="audit-filters" class="incident-filters" aria-label="Filter audit history">
+          <label>Action<select name="action" id="audit-action-filter"><option value="">All actions</option></select></label><label>Actor<select name="userId" id="audit-actor-filter"><option value="">All actors</option></select></label>
+          <label>Activity from<input name="from" type="date"></label><label>Activity through<input name="through" type="date"></label><button type="reset" class="text-button">Clear filters</button>
+        </form><p id="audit-range-error" class="form-error" role="alert" hidden>Start date cannot be later than end date.</p>
+        <section id="audit-register" class="data-register" aria-labelledby="audit-table-title" aria-busy="false"><div class="table-heading"><div><h2 id="audit-table-title">Incident activity</h2><p id="audit-scope">Recorded incident history</p></div><label class="sort-control">Sort by<select id="audit-sort"><option value="newest">Newest first</option><option value="oldest">Oldest first</option></select></label></div>
+          <div class="table-scroll"><table class="audit-table"><caption class="sr-only">Read-only backend history. Select an incident ID to view details.</caption><thead><tr><th scope="col">Timestamp</th><th scope="col">Incident</th><th scope="col">Actor</th><th scope="col">Action</th><th scope="col">State change</th><th scope="col">Description</th></tr></thead><tbody id="audit-rows"></tbody></table></div>
+          <div id="audit-table-state" class="table-state" role="status">Sign in to view history.</div><div class="table-footer audit-pagination"><span id="audit-result-count" role="status">0 events</span><div><button id="audit-previous" class="secondary-button" disabled>Previous</button><button id="audit-next" class="secondary-button" disabled>Next</button></div></div>
+        </section><p id="audit-updated" class="snapshot-time">Not refreshed yet</p><p class="storage-note">History is read-only and limited to incidents you can access. Exports include all filtered events, not only the current page.</p>
+      </div>
+      <div id="notifications-workspace" hidden>
+        <div id="notifications-error" class="notice error" role="alert" hidden></div>
+        <div class="notification-toolbar"><div><p id="notifications-summary" class="muted">Sign in to view your notifications.</p><p id="notifications-sync" class="snapshot-time">Not refreshed yet</p></div><div class="toolbar-actions"><button id="refresh-notifications" class="secondary-button">Refresh</button><button id="test-notification" class="secondary-button">Send test notification</button></div></div>
+        <div class="notification-list-toolbar"><div class="toolbar-actions"><button id="read-all-notifications" class="text-button" disabled>Mark all as read</button><button id="clear-notifications" class="text-button" disabled>Clear all notifications</button></div><label class="sort-control">Order<select id="notification-order"><option value="latest">Latest first</option><option value="oldest">Oldest first</option></select></label></div>
+        <div id="notification-feedback" class="notification-feedback" role="status" hidden><span id="notification-feedback-text"></span><button id="undo-notification-delete" class="text-button" hidden>Undo</button></div>
+        <section id="notification-inbox" class="notification-inbox" aria-label="Your notifications" aria-busy="false"><ul id="notification-items" class="notification-items"></ul><p id="notification-empty" class="table-state" role="status">No notifications yet.</p></section>
+        <p class="storage-note">Click a notification to read it. Right-click, use its actions button, or swipe left to delete. Read status and dismissals are saved in this browser for your account.</p>
+        <p id="notification-hazard-explanation" class="notification-hazard-explanation" hidden><span aria-hidden="true">⚠</span> A P1 incident is present in your visible incident register. Clearing or reading notifications does not remove this marker.</p>
+      </div>
+      <section id="section-placeholder" class="section-placeholder" hidden><h2 id="placeholder-title"></h2><p>This section is reserved for a later step.</p><button id="back-to-incidents">Back to incidents</button></section>
+      <footer class="page-footer"><span>I-ITSM <span aria-hidden="true">/</span> Service workspace</span><a href="https://www.vecteezy.com/" target="_blank" rel="noopener noreferrer">Icons by Vecteezy.com</a></footer>
+    </main>
+  </div>
+  <dialog id="account-status-dialog" class="form-dialog" aria-labelledby="account-status-title"><form id="account-status-form" class="dialog-content"><div class="dialog-heading"><h2 id="account-status-title">Change account status</h2><button type="button" class="close-button" data-close="account-status-dialog" aria-label="Cancel account status change">×</button></div><p id="account-status-description" class="muted"></p><p id="account-status-error" class="form-error" role="alert" hidden></p><div class="form-actions"><button type="button" class="secondary-button" data-close="account-status-dialog">Cancel</button><button type="submit" class="primary-button" id="confirm-account-status">Confirm</button></div></form></dialog>
+  <dialog id="create-dialog" class="form-dialog" aria-labelledby="create-title">
+    <form id="create-form" class="dialog-content">
+      <div class="dialog-heading"><h2 id="create-title">Report an incident</h2><button type="button" class="close-button" data-close="create-dialog" aria-label="Close report form">×</button></div>
+      <p id="create-error" class="form-error" role="alert" hidden></p>
+      <label>Title<input name="title" required maxlength="300" placeholder="Briefly describe the issue" autofocus></label>
+      <label>Description<textarea name="description" rows="4" required placeholder="What happened? Include details that can help investigation."></textarea></label>
+      <label>Category<select name="category" id="create-category" required></select></label>
+      <p class="field-help">Rate each factor from 1 (lowest) to 5 (highest).</p>
+      <div class="score-fields">
+        <label>Impact<select name="impact" required><option value="1">1 · Lowest</option><option>2</option><option selected>3</option><option>4</option><option value="5">5 · Highest</option></select></label>
+        <label>Urgency<select name="urgency" required><option value="1">1 · Lowest</option><option>2</option><option selected>3</option><option>4</option><option value="5">5 · Highest</option></select></label>
+        <label>Business criticality<select name="businessCriticality" required><option value="1">1 · Lowest</option><option>2</option><option selected>3</option><option>4</option><option value="5">5 · Highest</option></select></label>
+      </div>
+      <output id="priority-preview" class="priority-preview" aria-live="polite">Priority is calculated by the backend.</output>
+      <div class="form-actions"><button type="button" class="secondary-button" data-close="create-dialog">Cancel</button><button type="submit" class="primary-button">Report incident</button></div>
+    </form>
+  </dialog>
+  <dialog id="detail-dialog" class="detail-dialog" aria-labelledby="detail-title"><div class="dialog-content"><div class="dialog-heading"><h2 id="detail-title">Incident details</h2><div class="detail-header-actions"><button id="refresh-detail" class="secondary-button">Refresh details</button><button class="close-button" data-close="detail-dialog" aria-label="Close incident details">×</button></div></div><div id="detail-content"></div></div></dialog>
+  <div id="notification-context-menu" class="notification-context-menu" role="menu" aria-label="Notification actions" hidden><button id="delete-notification-menu-item" role="menuitem" type="button">Delete notification</button></div>
+  <dialog id="technician-dialog" class="detail-dialog" aria-labelledby="technician-dialog-title"><div class="dialog-content"><div class="dialog-heading"><h2 id="technician-dialog-title">Technician details</h2><div class="detail-header-actions"><button id="refresh-technician-detail" class="secondary-button">Refresh details</button><button class="close-button" data-close="technician-dialog" aria-label="Close technician details">×</button></div></div><div id="technician-detail-content"></div></div></dialog>
+</body>
+</html>

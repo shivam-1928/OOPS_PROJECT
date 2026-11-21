@@ -20,8 +20,6 @@ public class IncidentService {
         priorityCalculator = new PriorityCalculator();
     }
 
-    public void restore(Incident incident) { incidents.put(incident.getIncidentId(), incident); }
-
     public Incident createIncident(Incident incident) {
         if (incident == null) {
             throw new IllegalArgumentException("Incident cannot be null.");
@@ -46,6 +44,10 @@ public class IncidentService {
             throw new IllegalArgumentException("Incident not found: " + incidentId);
         }
         return incident;
+    }
+
+    public void restoreIncident(Incident incident) {
+        if (incident == null || incidents.putIfAbsent(incident.getIncidentId(), incident) != null) throw new IllegalArgumentException("Invalid stored incident.");
     }
 
     public List<Incident> getAllIncidents() {
@@ -112,10 +114,26 @@ public class IncidentService {
     }
 
     public void requestEmployeeInformation(String incidentId, String technicianId) {
+        requestEmployeeInformation(incidentId, technicianId, "Please provide more details about the issue.");
+    }
+
+    public void requestEmployeeInformation(String incidentId, String technicianId, String question) {
         Incident incident = getIncident(incidentId);
         requireAssignedTechnician(incident, technicianId);
         requireStatus(incident, Incident.Status.IN_PROGRESS);
+        incident.addInformationRequest(new itsm.model.InformationRequest(technicianId, question));
         incident.setStatus(Incident.Status.WAITING_FOR_EMPLOYEE);
+    }
+
+    public void addEmployeeInformation(String incidentId, String employeeId, String notes) {
+        Incident incident = getIncident(incidentId);
+        if (!incident.getEmployeeId().equals(employeeId)) throw new IllegalArgumentException("Only the reporting employee can add information.");
+        if (notes == null || notes.isBlank()) throw new IllegalArgumentException("Additional information is required.");
+        var requests = incident.getInformationRequests();
+        if (incident.getStatus() == Incident.Status.WAITING_FOR_EMPLOYEE && !requests.isEmpty()) {
+            requests.get(requests.size() - 1).addReply(employeeId, notes);
+        }
+        incident.setDescription(incident.getDescription() + "\nAdditional information: " + notes.trim());
     }
 
     public void resumeInvestigation(String incidentId, String technicianId) {

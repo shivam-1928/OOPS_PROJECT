@@ -18,7 +18,7 @@ public abstract class User {
         this.userId = userId;
         this.name = name;
         this.username = username;
-        this.password = PasswordHash.create(password);
+        this.password = PasswordHash.encode(password);
         this.email = email;
         this.active = true;
     }
@@ -60,12 +60,15 @@ public abstract class User {
         if (isBlank(newPassword)) {
             throw new IllegalArgumentException("New password cannot be empty.");
         }
-        this.password = PasswordHash.create(newPassword);
+        this.password = PasswordHash.encode(newPassword);
     }
 
+    /** Persistence only; never include this value in API responses or logs. */
     public String getPasswordHash() { return password; }
-
-    public void restorePasswordHash(String hash) { this.password = hash; }
+    public void restorePasswordHash(String encoded) {
+        if (!PasswordHash.valid(encoded)) throw new IllegalArgumentException("Unsupported stored password format.");
+        password = encoded;
+    }
 
     public String getEmail() {
         return email;
