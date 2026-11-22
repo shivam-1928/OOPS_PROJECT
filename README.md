@@ -35,3 +35,9 @@ The current upload passes 838 automated assertions across the API, domain servic
 After compiling, run `python tests/storage_integration_test.py --java <path-to-java.exe>` for the 102 database checks and `python tests/web_api_test.py --java <path-to-java.exe>` for 489 API checks. The clean distributable sample contains no incidents; the database suite creates historical fixtures only inside its disposable copy. Frontend/service test commands and remaining domain-policy limitations are documented below.
 
 See [frontend/README.md](frontend/README.md) for the incident workflows, API, existing backend limitations, and verification commands.
+
+### Shared-outage alerts and technician recommendations
+
+Sign in as an administrator and open Overview. A category appears under Shared-outage alerts when at least five tickets arrive within the last 30 minutes and their count is at least three times the average for the same half-hour on the preceding seven days. Days without reports count as zero. Each alert shows the recent ticket links and a suggested investigator. Use Confirm shared outage after reviewing the reports. Confirmation is recorded in the anchor ticket's history. Refresh Overview to update the counts. A quiet half-hour between reports starts a new episode.
+
+Open an unassigned, classified or escalated incident to see the recommended technician and explanation. Available specialists rank first, ordered by unresolved assignments, with technician ID breaking ties. If no specialist is available, the least-loaded available technician is suggested. Selecting Use recommended technician and clicking Assign technician applies the recommendation. The server checks that the displayed choice is still current.

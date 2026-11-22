@@ -84,6 +84,13 @@
     $('#overview-attention-count').textContent = ready ? `${view.attention.length} tickets` : '';
     $('#overview-attention-empty').hidden = view.attention.length > 0;
     $('#overview-attention-empty').textContent = state.loading && !ready ? 'Loading tickets…' : !ready ? 'Refresh to load tickets needing action.' : 'No recorded ticket activity yet.';
+    const alerts = state.user?.role === 'ADMINISTRATOR' ? state.outages || [] : [];
+    $('#overview-outages').hidden = !alerts.length;
+    $('#outage-items').innerHTML = alerts.map(a => `<article><h3>${escape(human(a.category))} · ${a.confirmed ? 'Confirmed outage' : 'Possible shared outage'}</h3>
+      <p>${a.tickets.length} complaints in 30 minutes. The same period averaged ${Number(a.baseline).toFixed(1)} per day over the previous week.</p>
+      <p>${a.recommendation.id ? `Suggested investigator: <strong>${escape(a.recommendation.name)}</strong>. ${escape(a.recommendation.reason)}` : 'No technician currently available.'}</p>
+      <p>${a.tickets.map(id => `<button class="incident-link" data-overview-incident="${escape(id)}">${escape(id)}</button>`).join(' ')}</p>
+      ${a.confirmed ? '' : `<button class="secondary-button" data-confirm-outage="${escape(a.anchor)}">Confirm shared outage</button>`}</article>`).join('');
     $('#overview-sla').hidden = !view.warnings.length;
     $('#overview-sla-count').textContent = `${view.warnings.length} active ticket${view.warnings.length === 1 ? '' : 's'} at risk or breached. Showing up to 3, breaches first.`;
     $('#overview-sla-items').innerHTML = view.warnings.slice(0, 3).map(row => ticket(row, human(row.slaStatus))).join('');
@@ -184,7 +191,7 @@
         state.user.role === 'TECHNICIAN' ? window.ITSMApi.request(`/technicians/${encodeURIComponent(state.user.userId)}`, { signal }) : Promise.resolve({ ...state.user, ...result.users.find(user => user.userId === state.user.userId) })
       ]);
       if (!current()) return;
-      state.rows = result.incidents; state.logs = logs; state.profile = profile; state.people = result.users; state.updated = new Date();
+      state.outages = result.outages || []; state.rows = result.incidents; state.logs = logs; state.profile = profile; state.people = result.users; state.updated = new Date();
       $('#overview-notice').hidden = true;
       $('#overview-updated').textContent = `Last updated ${state.updated.toLocaleTimeString()}`;
     } catch (error) {
@@ -195,6 +202,19 @@
       $('#overview-updated').textContent = state.updated ? `Refresh failed · showing previous snapshot from ${state.updated.toLocaleTimeString()}` : 'Unable to load overview. Use Refresh to retry.';
     } finally { if (version === state.version) { state.loading = false; state.controller = null; render(); } }
   }
+  $('#outage-items').addEventListener('click', async event => {
+    const button = event.target.closest('[data-confirm-outage]');
+    if (!button) return;
+    button.disabled = true;
+    $('#outage-feedback').textContent = '';
+    try {
+      await window.ITSMApi.request('/outages/confirm', { method: 'POST', data: { anchor: button.dataset.confirmOutage } });
+      await refresh();
+    } catch (error) {
+      $('#outage-feedback').textContent = error.message;
+      button.disabled = false;
+    }
+  });
   $('#refresh-overview').addEventListener('click', refresh);
   $('#overview-incidents').addEventListener('click', () => { selectSection('Incidents'); $('#main').focus(); });
   $('#overview-create').addEventListener('click', () => document.dispatchEvent(new CustomEvent('createincident')));
@@ -209,7 +229,7 @@
     const changed = state.user?.userId !== event.detail?.userId;
     state.user = event.detail;
     if (changed || !state.user) {
-      cancel(); state.rows = []; state.logs = []; state.people = []; state.profile = null; state.updated = null;
+      cancel(); state.outages = []; state.rows = []; state.logs = []; state.people = []; state.profile = null; state.updated = null;
       $('#overview-notice').hidden = true; $('#overview-updated').textContent = 'Sign in to view your overview.'; render();
       if (active()) refresh();
     }
