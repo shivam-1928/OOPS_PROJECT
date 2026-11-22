@@ -2,9 +2,9 @@
   'use strict';
   function filterUsers(rows, filters = {}, query = '') {
     const search = query.trim().toLowerCase();
-    return rows.filter(row => (!filters.role || row.role === filters.role) && (!filters.active || String(row.active) === filters.active))
+    return rows.filter(row => (!filters.role || row.role === filters.role) && (!filters.active || (filters.active === 'pending' ? row.approvalPending : !row.approvalPending && String(row.active) === filters.active)))
       .filter(row => !search || `${row.userId} ${row.name} ${row.username} ${row.email} ${row.department || ''}`.toLowerCase().includes(search))
-      .sort((a, b) => a.name.localeCompare(b.name) || a.userId.localeCompare(b.userId, undefined, { numeric: true }));
+      .sort((a, b) => Number(!!b.approvalPending) - Number(!!a.approvalPending) || a.name.localeCompare(b.name) || a.userId.localeCompare(b.userId, undefined, { numeric: true }));
   }
   if (typeof module !== 'undefined' && module.exports) module.exports = { filterUsers };
   if (typeof document === 'undefined') return;
@@ -51,8 +51,9 @@
     const rows = filterUsers(state.rows, filters, $('#users-search').value);
     $('#users-total').textContent = state.fresh || state.rows.length ? state.rows.length : '—';
     $('#users-active').textContent = state.fresh || state.rows.length ? state.rows.filter(user => user.active).length : '—';
-    $('#users-inactive').textContent = state.fresh || state.rows.length ? state.rows.filter(user => !user.active).length : '—';
-    $('#users-rows').innerHTML = rows.map(user => `<tr><td><strong>${escape(user.name)}</strong><span class="row-secondary">${escape(user.userId)} · ${escape(user.username)}</span></td><td>${escape(human(user.role))}</td><td>${escape(user.email)}${user.department ? `<span class="row-secondary">${escape(user.department)}</span>` : ''}</td><td><span class="status ${user.active ? '' : 'neutral'}">${user.active ? 'Active' : 'Inactive'}</span></td><td><button class="secondary-button" data-account-id="${escape(user.userId)}" ${!state.fresh || state.loading || state.saving || user.active && user.deactivationReason ? 'disabled' : ''}>${user.active ? 'Deactivate' : 'Activate'}</button>${user.active && user.deactivationReason ? `<span class="row-secondary account-status-reason"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><circle cx="12" cy="7.5" r=".8" fill="currentColor" stroke="none"/></svg><span>${escape(user.deactivationReason)}</span></span>` : ''}</td></tr>`).join('');
+    $('#users-inactive').textContent = state.fresh || state.rows.length ? state.rows.filter(user => !user.active && !user.approvalPending).length : '—';
+    $('#users-pending').textContent = state.fresh || state.rows.length ? state.rows.filter(user => user.approvalPending).length : '—';
+    $('#users-rows').innerHTML = rows.map(user => `<tr><td><strong>${escape(user.name)}</strong><span class="row-secondary">${escape(user.userId)} · ${escape(user.username)}</span></td><td>${escape(human(user.role))}</td><td>${escape(user.email)}${user.department ? `<span class="row-secondary">${escape(user.department)}</span>` : ''}</td><td><span class="status ${user.active ? '' : 'neutral'}">${user.approvalPending ? 'Pending approval' : user.active ? 'Active' : 'Inactive'}</span></td><td><button class="secondary-button" data-account-id="${escape(user.userId)}" ${!state.fresh || state.loading || state.saving || user.active && user.deactivationReason ? 'disabled' : ''}>${user.approvalPending ? 'Review registration' : user.active ? 'Deactivate' : 'Activate'}</button>${user.active && user.deactivationReason ? `<span class="row-secondary account-status-reason"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><circle cx="12" cy="7.5" r=".8" fill="currentColor" stroke="none"/></svg><span>${escape(user.deactivationReason)}</span></span>` : ''}</td></tr>`).join('');
     $('#users-count').textContent = `${rows.length} of ${state.rows.length} users`;
     $('#users-empty').hidden = rows.length > 0;
     $('#users-empty').textContent = state.loading ? 'Loading users…' : !state.fresh ? 'Unable to load users. Use Refresh to retry.' : 'No users match these filters.';
@@ -134,9 +135,9 @@
     const button = event.target.closest('[data-account-id]'); if (!button || !state.fresh || state.loading || state.saving) return;
     state.target = state.rows.find(user => user.userId === button.dataset.accountId); if (!state.target) return;
     const user = state.target;
-    $('#account-status-title').textContent = `${user.active ? 'Deactivate' : 'Activate'} account`;
-    $('#account-status-description').textContent = `${user.name} · ${user.userId}. ${user.active ? 'This ends their current sessions and prevents sign-in. Existing records remain. You can activate the account again later.' : 'This restores sign-in access. Their previous sessions remain signed out.'}`;
-    $('#confirm-account-status').textContent = user.active ? 'Deactivate account' : 'Activate account';
+    $('#account-status-title').textContent = user.approvalPending ? 'Approve employee registration' : `${user.active ? 'Deactivate' : 'Activate'} account`;
+    $('#account-status-description').textContent = user.approvalPending ? `${user.name} · ${user.userId} · ${user.username} · ${user.email} · ${user.department || ''}. Confirm that this person is authorised to join your service desk. Approval enables employee sign-in and ticket creation.` : `${user.name} · ${user.userId}. ${user.active ? 'This ends their current sessions and prevents sign-in. Existing records remain. You can activate the account again later.' : 'This restores sign-in access. Their previous sessions remain signed out.'}`;
+    $('#confirm-account-status').textContent = user.approvalPending ? 'Approve account' : user.active ? 'Deactivate account' : 'Activate account';
     message('#account-status-error', ''); $('#account-status-dialog').showModal();
   });
   $('#account-status-form').addEventListener('submit', async event => {
@@ -144,10 +145,10 @@
     const target = state.target, form = event.currentTarget, identity = state.user?.userId;
     state.saving = true; busy(form, true); controls();
     try {
-      await window.ITSMApi.request(`/users/${encodeURIComponent(target.userId)}/active`, { method: 'POST', data: { active: String(!target.active) } });
+      await window.ITSMApi.request(`/users/${encodeURIComponent(target.userId)}/${target.approvalPending ? 'approve' : 'active'}`, { method: 'POST', data: target.approvalPending ? {} : { active: String(!target.active) } });
       if (state.user?.userId !== identity) return;
       $('#account-status-dialog').close(); document.dispatchEvent(new CustomEvent('accountschanged'));
-      await loadUsers(); message('#users-notice', `${target.name}'s account is now ${target.active ? 'inactive' : 'active'}.`);
+      await loadUsers(); message('#users-notice', target.approvalPending ? `${target.name}'s registration is approved. They can now sign in.` : `${target.name}'s account is now ${target.active ? 'inactive' : 'active'}.`);
     } catch (error) { if (state.user?.userId === identity) failure(error, '#account-status-error'); }
     finally { state.saving = false; busy(form, false); renderUsers(); }
   });

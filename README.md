@@ -1,5 +1,7 @@
 # I-ITSM course project
 
+Employee registrations require administrator approval. New requests are stored as inactive, pending accounts and cannot sign in until an administrator opens **Users → Pending approval → Review registration → Approve account**. Approval is enforced by the backend and persists across restarts. Existing accounts retain their previous status. Only administrators can approve; ordinary account activation cannot bypass pending approval.
+
 Java incident-management services with a browser frontend and persistent SQLite storage, using the supplied `database/store.py` adapter. The updated backend workflows remain in place.
 
 ## Run the web application

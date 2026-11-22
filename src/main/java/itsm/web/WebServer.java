@@ -26,6 +26,7 @@ public final class WebServer {
     private final Map<String, Session> sessions = new HashMap<>();
     private final Path frontend;
     private DatabaseStore storage;
+    private String publicOrigin;
     private boolean writeCommitted;
     private record Session(User user, Instant expires) {}
     private static final class HttpError extends RuntimeException {
@@ -48,6 +49,14 @@ public final class WebServer {
         for (int n = 1; n < args.length; n++) {
             if (args[n].equals("--database") && n + 1 < args.length) database = Path.of(args[++n]);
             else if (args[n].equals("--python") && n + 1 < args.length) python = args[++n];
+            else if (args[n].equals("--public-origin") && n + 1 < args.length) {
+                URI origin = URI.create(args[++n]);
+                if (!"https".equals(origin.getScheme()) || origin.getHost() == null || origin.getUserInfo() != null
+                        || origin.getPort() != -1 || (origin.getRawPath() != null && !origin.getRawPath().isEmpty())
+                        || origin.getRawQuery() != null || origin.getRawFragment() != null)
+                    throw new IllegalArgumentException("Public origin must be an HTTPS origin, such as https://example.trycloudflare.com (no trailing slash).");
+                app.publicOrigin = origin.toString();
+            }
             else throw new IllegalArgumentException("Unknown server argument: " + args[n]);
         }
         if (database != null) {
@@ -61,7 +70,7 @@ public final class WebServer {
         server.setExecutor(Executors.newFixedThreadPool(4));
         server.start();
         System.out.println("I-ITSM: http://127.0.0.1:" + server.getAddress().getPort());
-        System.out.println("Accounts: admin/admin123, employee/emp123, tech1/tech123, tech2/tech123");
+        System.out.println("Use your configured account credentials. New employee registrations require administrator approval.");
         System.out.println(app.storage == null ? "In-memory test mode. Data resets when this server stops." : "Persistent SQLite storage: " + app.storage.path());
     }
 
@@ -84,13 +93,15 @@ public final class WebServer {
             exchange.getResponseHeaders().set("Referrer-Policy", "same-origin");
             String host = exchange.getRequestHeaders().getFirst("Host");
             String authority = "127.0.0.1:" + exchange.getLocalAddress().getPort();
-            if (!authority.equals(host) && !("localhost:" + exchange.getLocalAddress().getPort()).equals(host))
+            boolean publicHost = publicOrigin != null && URI.create(publicOrigin).getRawAuthority().equals(host);
+            if (!authority.equals(host) && !("localhost:" + exchange.getLocalAddress().getPort()).equals(host) && !publicHost)
                 throw new HttpError(403, "Unrecognized host.");
             if (exchange.getRequestURI().getPath().startsWith("/api/")) {
                 exchange.getResponseHeaders().set("Cache-Control", "no-store");
                 if (!exchange.getRequestMethod().equals("GET")) {
                     String origin = exchange.getRequestHeaders().getFirst("Origin");
-                    if (origin != null && !origin.equals("http://" + host)) throw new HttpError(403, "Cross-origin requests are not allowed.");
+                    String expectedOrigin = publicHost ? publicOrigin : "http://" + host;
+                    if (origin != null && !origin.equals(expectedOrigin)) throw new HttpError(403, "Cross-origin requests are not allowed.");
                 }
                 synchronized (this) {
                     List<String> before = storage != null && changesRecords(exchange) ? snapshot() : null;
@@ -139,25 +150,30 @@ public final class WebServer {
             if (password.isBlank() || password.length() < 8 || password.length() > 128) throw new IllegalArgumentException("Password must contain 8–128 characters.");
             if (users.values().stream().anyMatch(user -> user.getUsername().equalsIgnoreCase(username))) throw new HttpError(409, "That username is already in use.");
             String id = nextId("E", users.values().stream().map(User::getUserId).toList(), 3);
-            Employee employee = new Employee(id, name, username, password, email, department); users.put(username, employee);
-            json(x, 201, Map.of("userId", id, "registered", true)); return;
+            Employee employee = new Employee(id, name, username, password, email, department);
+            employee.setApprovalPending(true); employee.setActive(false); users.put(username, employee);
+            users.values().stream().filter(user -> user instanceof Administrator && user.isActive()).forEach(user ->
+                notifications.sendInAppNotification(user.getUserId(), "Registration awaiting approval: " + username + " (" + id + "). Review the Users page."));
+            json(x, 201, Map.of("userId", id, "registered", true, "approvalPending", true)); return;
         }
         if (path.equals("/api/session") && method.equals("POST")) {
             Map<String, String> form = form(x);
             User user = users.get(form.get("username"));
-            if (user == null || !user.isActive() || !user.checkPassword(form.get("password")))
+            if (user == null || !user.checkPassword(form.get("password")))
                 throw new HttpError(401, "Invalid username or password.");
+            if (user.isApprovalPending()) throw new HttpError(403, "Your account is awaiting administrator approval.");
+            if (!user.isActive()) throw new HttpError(401, "Invalid username or password.");
             sessions.values().removeIf(session -> session.expires.isBefore(Instant.now()));
             String token = UUID.randomUUID().toString();
             sessions.put(token, new Session(user, Instant.now().plusSeconds(8 * 3600)));
-            x.getResponseHeaders().add("Set-Cookie", cookieName(x) + "=" + token + "; Path=/api; HttpOnly; SameSite=Strict; Max-Age=28800");
+            x.getResponseHeaders().add("Set-Cookie", cookieName(x) + "=" + token + "; Path=/api; HttpOnly; SameSite=Strict; Max-Age=28800" + (publicOrigin == null ? "" : "; Secure"));
             json(x, 200, profileData(user)); return;
         }
         User actor = currentUser(x);
         if (path.equals("/api/session") && method.equals("GET")) { json(x, 200, profileData(actor)); return; }
         if (path.equals("/api/logout") && method.equals("POST")) {
             sessions.remove(token(x));
-            x.getResponseHeaders().add("Set-Cookie", cookieName(x) + "=; Path=/api; HttpOnly; SameSite=Strict; Max-Age=0");
+            x.getResponseHeaders().add("Set-Cookie", cookieName(x) + "=; Path=/api; HttpOnly; SameSite=Strict; Max-Age=0" + (publicOrigin == null ? "" : "; Secure"));
             json(x, 200, Map.of("ok", true)); return;
         }
         if (path.equals("/api/profile") && method.equals("POST")) {
@@ -199,9 +215,18 @@ public final class WebServer {
             json(x, 200, Map.of("users", users.values().stream().map(u -> directoryData(u, actor)).toList())); return;
         }
         String[] userPath = path.split("/");
+        if (userPath.length == 5 && userPath[2].equals("users") && userPath[4].equals("approve") && method.equals("POST")) {
+            require(actor instanceof Administrator, "Only administrators can approve registrations.");
+            User target = users.values().stream().filter(u -> u.getUserId().equals(userPath[3])).findFirst().orElseThrow(() -> new HttpError(404, "User not found."));
+            if (!target.isApprovalPending()) throw new HttpError(409, "This account is not awaiting approval.");
+            target.setApprovalPending(false); target.setActive(true);
+            notifications.sendInAppNotification(target.getUserId(), "Your account has been approved by an administrator. You can now use the service desk.");
+            json(x, 200, directoryData(target, actor)); return;
+        }
         if (userPath.length == 5 && userPath[2].equals("users") && userPath[4].equals("active") && method.equals("POST")) {
             require(actor instanceof Administrator, "Only administrators can change account status.");
             User target = users.values().stream().filter(u -> u.getUserId().equals(userPath[3])).findFirst().orElseThrow(() -> new HttpError(404, "User not found."));
+            if (target.isApprovalPending()) throw new HttpError(409, "Approve this registration before changing its active status.");
             String value = required(form(x), "active");
             if (!Set.of("true", "false").contains(value)) throw new IllegalArgumentException("Active must be true or false.");
             if (value.equals("false")) {
@@ -498,6 +523,7 @@ public final class WebServer {
     private Map<String, Object> directoryData(User user, User actor) {
         Map<String, Object> data = profileData(user);
         data.put("deactivationReason", deactivationReason(user, actor));
+        data.put("approvalPending", user.isApprovalPending());
         return data;
     }
     private Map<String, Object> technicianData(Technician technician, User actor) {

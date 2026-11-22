@@ -1,4 +1,4 @@
-param([int]$Port = 8080, [string]$DatabasePath = 'data/itsm.sqlite', [string]$PythonPath = '', [switch]$InMemory)
+param([int]$Port = 8080, [string]$DatabasePath = 'data/itsm.sqlite', [string]$PythonPath = '', [switch]$InMemory, [string]$PublicOrigin = '')
 $ErrorActionPreference = 'Stop'
 Set-Location -LiteralPath $PSScriptRoot
 $jdkDirectory = 'C:\Program Files\Java\jdk-21.0.11\bin'
@@ -10,7 +10,9 @@ New-Item -ItemType Directory -Force -Path '.build/classes' | Out-Null
 $javaSources = @(Get-ChildItem -LiteralPath 'src/main/java' -Recurse -Filter '*.java' | ForEach-Object FullName)
 & $javacPath -encoding UTF-8 -d '.build/classes' $javaSources
 if ($LASTEXITCODE -ne 0) { throw 'Java compilation failed.' }
-if ($InMemory) { & $javaPath -cp '.build/classes' itsm.web.WebServer $Port; exit $LASTEXITCODE }
+$publicArguments = @()
+if ($PublicOrigin) { $publicArguments = @('--public-origin', $PublicOrigin) }
+if ($InMemory) { & $javaPath -cp '.build/classes' itsm.web.WebServer $Port @publicArguments; exit $LASTEXITCODE }
 if (-not $PythonPath) { $PythonPath = $env:ITSM_PYTHON }
 if (-not $PythonPath) {
     $pythonCommand = Get-Command python.exe -ErrorAction SilentlyContinue
@@ -26,4 +28,4 @@ New-Item -ItemType Directory -Force -Path (Split-Path -Parent $resolvedDatabase)
 if (-not (Test-Path -LiteralPath $resolvedDatabase) -and (Test-Path -LiteralPath 'database/sample.sqlite')) {
     Copy-Item -LiteralPath 'database/sample.sqlite' -Destination $resolvedDatabase
 }
-& $javaPath -cp '.build/classes' itsm.web.WebServer $Port --database $resolvedDatabase --python $PythonPath
+& $javaPath -cp '.build/classes' itsm.web.WebServer $Port --database $resolvedDatabase --python $PythonPath @publicArguments

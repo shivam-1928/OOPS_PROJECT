@@ -38,7 +38,7 @@ function selectSection(section) {
   document.querySelector('#section-placeholder').hidden = isAccount || isUsers || isOverview || isIncidents || isTechnicians || isSLA || isReports || isAudit || isNotifications;
   document.querySelector('#notice').hidden = !isIncidents || !document.querySelector('#notice').textContent;
   document.querySelector('#placeholder-title').textContent = section;
-  document.title = `${section} · I-ITSM`;
+  document.title = `${section} · Resolvr`;
   document.dispatchEvent(new CustomEvent('sectionchange', { detail: section }));
 }
 items.forEach(item => item.addEventListener('click', () => selectSection(item.dataset.section)));

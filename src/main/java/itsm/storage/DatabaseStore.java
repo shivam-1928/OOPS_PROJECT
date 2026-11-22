@@ -55,6 +55,7 @@ public final class DatabaseStore {
         List<String> rows = new ArrayList<>();
         for (User user : users.values()) rows.add(row("accounts", user.getUserId(), user.getName(), user.getUsername(), user.getPasswordHash(), user.getEmail(), user.getRole(), user instanceof Employee e ? e.getDepartment() : null, user.isActive() ? 1 : 0, user instanceof Technician t ? (t.isMarkedAvailable() ? 1 : 0) : null));
         for (User user : users.values()) rows.add(row("profile_details", user.getUserId(), user.getPhone(), user.getProfilePicture()));
+        for (User user : users.values()) rows.add(row("registration_approvals", user.getUserId(), user.isApprovalPending() ? 1 : 0));
         for (User user : users.values()) if (user instanceof Technician t) for (String skill : new TreeSet<>(t.getSkills())) rows.add(row("skills", t.getUserId(), skill));
         for (Incident i : incidents.getAllIncidents()) rows.add(row("incidents", i.getIncidentId(), i.getEmployeeId(), i.getTitle(), i.getDescription(), i.getCategory(), i.getImpact(), i.getUrgency(), i.getBusinessCriticality(), i.getPriority(), i.getStatus(), i.getTechnicianId(), i.getCreatedAt(), i.getAcknowledgedAt(), i.getResolvedAt(), i.getClosedAt(), i.getResolutionNotes(), sla.getResponseDeadline(i.getIncidentId()), sla.getResolutionDeadline(i.getIncidentId())));
         for (AuditLog log : audit.getAllLogs()) rows.add(row("audit", log.getTimestamp(), log.getUserId(), log.getAction(), log.getIncidentId(), log.getPreviousState(), log.getNewState(), log.getDescription()));
@@ -99,6 +100,7 @@ public final class DatabaseStore {
                     users.put(user.getUsername(), user); ids.put(user.getUserId(), user);
                 }
                 case "profile_details" -> { User user = ids.get(v[0]); user.setPhone(v[1]); user.setProfilePicture(v[2]); }
+                case "registration_approvals" -> ids.get(v[0]).setApprovalPending("1".equals(v[1]));
                 case "skills" -> ((Technician) ids.get(v[0])).addSkill(v[1]);
                 case "incidents" -> {
                     Incident i = new Incident(v[0], v[1], v[2], v[3], Incident.Category.valueOf(v[4]), Integer.parseInt(v[5]), Integer.parseInt(v[6]), Integer.parseInt(v[7]), time(v[11]));
