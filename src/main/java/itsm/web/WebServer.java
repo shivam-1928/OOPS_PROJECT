@@ -604,7 +604,7 @@ public final class WebServer {
     private void serve(HttpExchange x) throws IOException {
         if (!x.getRequestMethod().equals("GET")) throw new HttpError(405, "Method not allowed.");
         String request = x.getRequestURI().getPath();
-        Path file = frontend.resolve(request.equals("/") ? "index.html" : request.substring(1)).normalize();
+        Path file = frontend.resolve(request.equals("/") ? "landing.html" : request.substring(1)).normalize();
         if (!file.startsWith(frontend) || !Files.isRegularFile(file) || !file.toRealPath().startsWith(frontend)) throw new HttpError(404, "File not found.");
         String name = file.getFileName().toString();
         String type = name.endsWith(".html") ? "text/html; charset=utf-8" : name.endsWith(".css") ? "text/css; charset=utf-8" : name.endsWith(".js") ? "text/javascript; charset=utf-8" : name.endsWith(".png") ? "image/png" : (name.endsWith(".jpg") || name.endsWith(".jpeg")) ? "image/jpeg" : name.endsWith(".pdf") ? "application/pdf" : "text/plain; charset=utf-8";
