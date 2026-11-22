@@ -31,6 +31,8 @@ try:
         connection.close()
         return result
     assert request('demo.example.com')[0] == 200
+    assert b'id="hero-title"' in request('demo.example.com', path='/')[2]
+    assert b'id="overview-workspace"' in request('demo.example.com', path='/index.html')[2]
     assert request('attacker.example.com')[0] == 403
     assert request(f'127.0.0.1:{port}')[0] == 200
     credentials = {'username': 'admin', 'password': 'admin123'}
@@ -40,7 +42,7 @@ try:
     assert status == 200, body
     assert '; Secure' in headers['set-cookie']
     assert 'HttpOnly' in str(headers) and 'SameSite=Strict' in str(headers)
-    print('PASS: 8 public-origin, cross-origin and secure-cookie checks.')
+    print('PASS: 10 landing/app routing, public-origin, cross-origin and secure-cookie checks.')
 finally:
     server.terminate()
     server.wait(timeout=10)

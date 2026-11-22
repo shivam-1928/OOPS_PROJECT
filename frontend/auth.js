@@ -24,7 +24,7 @@
       const data = Object.fromEntries(new FormData(signin)); data.username = data.username.trim();
       if (!data.username || !data.password.trim()) { error('Enter your username and password.'); return; }
       const controls = [...signin.elements]; controls.forEach(control => control.disabled = true); signin.setAttribute('aria-busy', 'true');
-      try { await window.ITSMApi.request('/session', { method: 'POST', data }); signin.reset(); location.replace('./'); }
+      try { await window.ITSMApi.request('/session', { method: 'POST', data }); signin.reset(); location.replace('./index.html'); }
       catch (failure) { error(failure.message); signin.elements.password.value = ''; }
       finally { controls.forEach(control => control.disabled = false); signin.setAttribute('aria-busy', 'false'); }
     });

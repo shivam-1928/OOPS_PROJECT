@@ -28,7 +28,7 @@ function harness(mode, data, request = async () => ({})) {
   const duplicate = harness('signup', data, async () => { throw Error('That username is already in use.'); });
   await duplicate.submit(); check(duplicate.nodes['#auth-error'].textContent, 'That username is already in use.'); check(duplicate.fields.password.value, ''); check(duplicate.fields.username.disabled, false); check(duplicate.nav, []);
   const signin = harness('signin', { username: ' employee ', password: 'existing-test-password' }, async (path, options) => { check(path, '/session'); check(options.data.username, 'employee'); return {}; });
-  await signin.submit(); check(signin.nav, ['./']); check(signin.fields.password.value, '');
+  await signin.submit(); check(signin.nav, ['./index.html']); check(signin.fields.password.value, '');
   const failure = harness('signin', { username: 'employee', password: 'wrong' }, async () => { throw Error('Invalid username or password.'); });
   await failure.submit(); check(failure.nodes['#auth-error'].textContent, 'Invalid username or password.'); check(failure.fields.password.value, ''); check(failure.fields.username.disabled, false); check(failure.nav, []);
   const html = fs.readFileSync(require.resolve('../frontend/index.html'), 'utf8');
