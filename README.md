@@ -1,3 +1,9 @@
+PROJECT VIDEO LINK : https://drive.google.com/file/d/1TltXfZqU93hIJ3LXyZ62iGF7odzr5unz/view?usp=sharing
+
+
+
+
+
 # I-ITSM course project
 
 Employee registrations require administrator approval. New requests are stored as inactive, pending accounts and cannot sign in until an administrator opens **Users → Pending approval → Review registration → Approve account**. Approval is enforced by the backend and persists across restarts. Existing accounts retain their previous status. Only administrators can approve; ordinary account activation cannot bypass pending approval.
