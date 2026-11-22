@@ -8,3 +8,4 @@ CREATE TABLE IF NOT EXISTS information_requests(incident TEXT NOT NULL REFERENCE
 CREATE TABLE IF NOT EXISTS information_replies(incident TEXT NOT NULL, request_no INTEGER NOT NULL, reply_no INTEGER NOT NULL, employee TEXT NOT NULL REFERENCES accounts, text TEXT NOT NULL, replied_at TEXT NOT NULL, PRIMARY KEY(incident,request_no,reply_no), FOREIGN KEY(incident,request_no) REFERENCES information_requests(incident,request_no));
 
 CREATE TABLE IF NOT EXISTS profile_details(account TEXT PRIMARY KEY REFERENCES accounts, phone TEXT NOT NULL DEFAULT '', picture TEXT NOT NULL DEFAULT '');
+CREATE TABLE IF NOT EXISTS registration_approvals(account TEXT PRIMARY KEY REFERENCES accounts, pending INTEGER NOT NULL CHECK(pending IN (0,1)));

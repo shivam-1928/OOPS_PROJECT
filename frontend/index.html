@@ -4,7 +4,7 @@
   <meta charset="UTF-8"><link rel="icon" type="image/png" href="assets/branding/service-logo.png">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#18181B">
-  <title>Incidents · I-ITSM</title>
+  <title>Incidents · Resolvr</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap" rel="stylesheet">
@@ -25,7 +25,7 @@
   <a class="skip-link" href="#main">Skip to content</a>
   <aside class="sidebar" aria-label="Application sidebar">
     <button class="brand" aria-label="Keep navigation expanded" aria-expanded="false" aria-controls="navigation">
-      <span class="brand-symbol" aria-hidden="true"><img class="brand-logo" src="assets/branding/service-logo.png" alt=""></span>
+      <span class="brand-symbol" aria-hidden="true"><img class="brand-logo" src="assets/branding/service-logo.png" alt=""></span><span class="brand-name nav-label">Resolvr</span>
     </button>
     <div class="sidebar-rule"></div>
     <nav id="navigation" aria-label="Main navigation">
@@ -67,9 +67,9 @@
       </div>
       <div id="users-workspace" hidden>
         <div id="users-notice" class="notice" role="status" hidden></div>
-        <div class="incident-summary" aria-label="User summary"><span>Total <strong id="users-total">—</strong></span><span>Active <strong id="users-active">—</strong></span><span>Inactive <strong id="users-inactive">—</strong></span></div>
+        <div class="incident-summary" aria-label="User summary"><span>Total <strong id="users-total">—</strong></span><span>Active <strong id="users-active">—</strong></span><span>Inactive <strong id="users-inactive">—</strong></span><span>Pending approval <strong id="users-pending">—</strong></span></div>
         <div class="incident-tools"><label class="search-field"><span class="sr-only">Search users</span><input id="users-search" type="search" placeholder="Search name, ID, username or email"></label><button id="refresh-users" class="secondary-button">Refresh</button></div>
-        <form id="users-filters" class="incident-filters"><label>Role<select name="role"><option value="">All roles</option><option value="EMPLOYEE">Employee</option><option value="TECHNICIAN">Technician</option><option value="ADMINISTRATOR">Administrator</option></select></label><label>Account status<select name="active"><option value="">All accounts</option><option value="true">Active</option><option value="false">Inactive</option></select></label><button type="reset" class="text-button">Clear filters</button></form>
+        <form id="users-filters" class="incident-filters"><label>Role<select name="role"><option value="">All roles</option><option value="EMPLOYEE">Employee</option><option value="TECHNICIAN">Technician</option><option value="ADMINISTRATOR">Administrator</option></select></label><label>Account status<select name="active"><option value="">All accounts</option><option value="true">Active</option><option value="false">Inactive</option><option value="pending">Pending approval</option></select></label><button type="reset" class="text-button">Clear filters</button></form>
         <section class="data-register" id="users-register" aria-labelledby="users-title"><div class="table-heading"><h2 id="users-title">Registered users</h2><span id="users-count" class="record-count"></span></div><div class="table-scroll"><table class="users-table"><caption class="sr-only">Administrator user directory and account activation controls.</caption><thead><tr><th>User</th><th>Role</th><th>Contact</th><th>Account status</th><th>Action</th></tr></thead><tbody id="users-rows"></tbody></table></div><p id="users-empty" class="table-state" role="status">Loading users…</p></section>
       </div>
       <div id="overview-workspace" hidden>
@@ -189,7 +189,7 @@
         <p id="notification-hazard-explanation" class="notification-hazard-explanation" hidden><span aria-hidden="true">⚠</span> A P1 incident is present in your visible incident register. Clearing or reading notifications does not remove this marker.</p>
       </div>
       <section id="section-placeholder" class="section-placeholder" hidden><h2 id="placeholder-title"></h2><p>This section is reserved for a later step.</p><button id="back-to-incidents">Back to incidents</button></section>
-      <footer class="page-footer"><span>I-ITSM <span aria-hidden="true">/</span> Service workspace</span><a href="https://lucide.dev/" target="_blank" rel="noopener noreferrer">Icons by Lucide</a></footer>
+      <footer class="page-footer"><span>Resolvr <span aria-hidden="true">/</span> Service workspace</span><a href="https://lucide.dev/" target="_blank" rel="noopener noreferrer">Icons by Lucide</a></footer>
     </main>
   </div>
   <dialog id="account-status-dialog" class="form-dialog" aria-labelledby="account-status-title"><form id="account-status-form" class="dialog-content"><div class="dialog-heading"><h2 id="account-status-title">Change account status</h2><button type="button" class="close-button" data-close="account-status-dialog" aria-label="Cancel account status change">×</button></div><p id="account-status-description" class="muted"></p><p id="account-status-error" class="form-error" role="alert" hidden></p><div class="form-actions"><button type="button" class="secondary-button" data-close="account-status-dialog">Cancel</button><button type="submit" class="primary-button" id="confirm-account-status">Confirm</button></div></form></dialog>

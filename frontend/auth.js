@@ -17,7 +17,7 @@
       });
     }
     const query = new URLSearchParams(location.search);
-    const message = query.has('registered') ? 'Account created. Sign in to continue.' : query.has('expired') ? 'Your session ended. Please sign in again.' : query.has('connection') ? 'We could not connect to the service desk. Try signing in again.' : '';
+    const message = query.has('registered') ? 'Registration submitted. An administrator must approve your account before you can sign in.' : query.has('expired') ? 'Your session ended. Please sign in again.' : query.has('connection') ? 'We could not connect to the service desk. Try signing in again.' : '';
     $('#auth-message').textContent = message; $('#auth-message').hidden = !message;
     signin.addEventListener('submit', async event => {
       event.preventDefault(); error('');

@@ -4,7 +4,7 @@ from pathlib import Path
 import sqlite3
 import sys
 
-tables = ("accounts", "profile_details", "skills", "incidents", "audit", "notifications", "information_requests", "information_replies")
+tables = ("accounts", "profile_details", "registration_approvals", "skills", "incidents", "audit", "notifications", "information_requests", "information_replies")
 
 def encode(value):
     return "-" if value is None else base64.b64encode(str(value).encode()).decode()

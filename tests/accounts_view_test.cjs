@@ -15,4 +15,8 @@ check(filterUsers(rows,{},'a001').map(u=>u.userId),['A001']);
 check(filterUsers(rows,{},'not found'),[]);
 check(filterUsers([],{},''),[]);
 check(JSON.stringify(rows),original);
+const pending = {userId:'E002',name:'Pending Employee',username:'pending',email:'pending@local.test',role:'EMPLOYEE',active:false,approvalPending:true};
+check(filterUsers([...rows,pending],{active:'pending'}).map(u=>u.userId),['E002']);
+check(filterUsers([...rows,pending],{active:'false'}).map(u=>u.userId),['T001']);
+check(filterUsers([...rows,pending])[0].userId,'E002');
 console.log(`Accounts: ${checks} directory view assertions passed.`);

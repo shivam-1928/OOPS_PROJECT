@@ -7,6 +7,7 @@ public abstract class User {
     private String password;
     private String email;
     private boolean active;
+    private boolean approvalPending;
 
     private String phone = "";
 
@@ -88,8 +89,11 @@ public abstract class User {
     }
 
     public boolean isActive() {
-        return active;
+        return active && !approvalPending;
     }
+
+    public boolean isApprovalPending() { return approvalPending; }
+    public void setApprovalPending(boolean pending) { approvalPending = pending; }
 
     public void setActive(boolean active) {
         this.active = active;
