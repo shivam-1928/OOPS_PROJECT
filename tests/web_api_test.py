@@ -265,6 +265,29 @@ try:
     call(employee, manual_path + '/close', {})
     final_workload = {t['userId']: t['activeIncidentCount'] for t in call(admin, '/technicians')['technicians']}
     check(final_workload == baseline, 'Closing transferred ticket releases only its new owner workload')
+    outage_payload = dict(title="Shared mail service unavailable", description="Mail fails to load.",
+                          category="EMAIL", impact=3, urgency=3, businessCriticality=3)
+    created_ids = []
+    for _ in range(5):
+        created_ids.append(call(employee, '/incidents', outage_payload, status=201)['incidentId'])
+    def email_alert():
+        alerts = [a for a in call(admin, '/incidents')['outages'] if a['category'] == 'EMAIL']
+        check(len(alerts) == 1, 'One alert per category spike')
+        return alerts[0]
+    alert = email_alert()
+    check(set(created_ids).issubset(alert['tickets']), 'Alert links complaints')
+    check(not call(employee, '/incidents')['outages'], 'Employee cannot view shared alerts')
+    call(employee, '/outages/confirm', {'anchor': alert['anchor']}, status=403)
+    call(admin, '/outages/confirm', {'anchor': alert['anchor']})
+    extra = call(employee, '/incidents', outage_payload, status=201)['incidentId']
+    updated = email_alert()
+    check(updated['confirmed'] and updated['anchor'] == alert['anchor'] and extra in updated['tickets'],
+          'New report updates confirmed episode')
+    pick = call(admin, '/incidents/' + extra)['recommendation']
+    check(pick['id'] == updated['recommendation']['id'] and 'unresolved' in pick['reason'],
+          'Outage and ticket show consistent recommendations')
+    assigned = call(admin, '/incidents/' + extra + '/assign', {'strategy': 'RECOMMENDED', 'recommendedId': pick['id']})
+    check(assigned['technicianId'] == pick['id'], 'Assignment uses displayed recommendation')
     call(employee, '/logout', {})
     call(employee, '/session', status=401)
     with anonymous.open(base + '/') as response:

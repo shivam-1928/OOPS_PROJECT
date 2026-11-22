@@ -237,6 +237,19 @@ public final class WebServer {
                 json(x, 200, technicianDetail(technician, actor)); return;
             }
         }
+        if (path.equals("/api/outages/confirm") && method.equals("POST")) {
+            require(actor instanceof Administrator, "Only administrators can confirm outages.");
+            String id = required(form(x), "anchor");
+            var spike = DeskInsights.spikes(incidents.getAllIncidents(), LocalDateTime.now()).stream()
+                    .filter(a -> a.anchor().getIncidentId().equals(id)).findFirst()
+                    .orElseThrow(() -> new IllegalStateException("Alert has expired. Refresh Overview."));
+            if (!outageConfirmed(id)) {
+                String status = spike.anchor().getStatus().name();
+                audit.record(actor.getUserId(), "CONFIRM_OUTAGE", id, status, status,
+                        "Confirmed shared outage for " + spike.anchor().getCategory() + ".");
+            }
+            json(x, 200, Map.of("confirmed", true)); return;
+        }
         if (path.equals("/api/incidents") && method.equals("GET")) {
             Map<String, String> filters = decode(x.getRequestURI().getRawQuery());
             List<Incident> visible = visible(actor);
@@ -252,7 +265,7 @@ public final class WebServer {
                 people.add(userData(actor));
                 for (Technician t : technicians()) if (!t.getUserId().equals(actor.getUserId())) people.add(userData(t));
             }
-            json(x, 200, Map.of("incidents", rows, "users", people, "notifications", notifications.getNotificationsFor(actor.getUserId()),
+            json(x, 200, Map.of("outages", actor instanceof Administrator ? outageAlerts() : List.of(), "incidents", rows, "users", people, "notifications", notifications.getNotificationsFor(actor.getUserId()),
                     "categories", Arrays.asList(Incident.Category.values()), "statuses", Arrays.asList(Incident.Status.values()), "storage", storage == null ? "MEMORY" : "SQLITE")); return;
         }
         if (path.equals("/api/priority") && method.equals("POST")) {
@@ -296,10 +309,25 @@ public final class WebServer {
                 switch (action) {
                     case "assign" -> {
                         String strategy = required(f, "strategy");
-                        if (!Set.of("SKILL", "LOAD").contains(strategy)) throw new IllegalArgumentException("Select skill-based or load-based assignment.");
-                        TechnicianAssignmentStrategy choice = strategy.equals("SKILL") ? new SkillBasedAssignment() : new LoadBasedAssignment();
-                        incidents.assignIncident(i.getIncidentId(), technicians(), choice);
-                        notes = "Assigned using " + choice.getStrategyName();
+                        TechnicianAssignmentStrategy choice;
+                        if ("RECOMMENDED".equals(strategy)) {
+                            var pick = DeskInsights.recommend(i.getCategory(), technicians(), incidents.getAllIncidents())
+                                    .orElseThrow(() -> new IllegalStateException("No technicians available."));
+                            if (!pick.technician().getUserId().equals(required(f, "recommendedId")))
+                                throw new IllegalStateException("The recommendation changed. Refresh this ticket.");
+                            // Use the ordinary assignment workflow with the verified candidate.
+                            choice = new LoadBasedAssignment();
+                            incidents.assignIncident(i.getIncidentId(), List.of(pick.technician()), choice);
+                            notes = "Assigned by recommendation. " + pick.reason();
+                        } else {
+                            choice = switch (strategy) {
+                                case "SKILL" -> new SkillBasedAssignment();
+                                case "LOAD" -> new LoadBasedAssignment();
+                                default -> throw new IllegalArgumentException("Unknown assignment strategy.");
+                            };
+                            incidents.assignIncident(i.getIncidentId(), technicians(), choice);
+                            notes = "Assigned using " + choice.getStrategyName();
+                        }
                         notifications.sendInAppNotification(i.getTechnicianId(), "Incident " + i.getIncidentId() + " has been assigned to you.");
                     }
                     case "reassign" -> {
@@ -397,6 +425,28 @@ public final class WebServer {
         return data;
     }
 
+    private boolean outageConfirmed(String id) {
+        return audit.getLogsForIncident(id).stream().anyMatch(log -> "CONFIRM_OUTAGE".equals(log.getAction()));
+    }
+
+    private Map<String, String> recommendation(Incident i) {
+        return DeskInsights.recommend(i.getCategory(), technicians(), incidents.getAllIncidents())
+                .map(r -> Map.of("id", r.technician().getUserId(), "name", r.technician().getName(), "reason", r.reason()))
+                .orElse(Map.of());
+    }
+
+    private List<Object> outageAlerts() {
+        List<Object> result = new ArrayList<>();
+        for (var spike : DeskInsights.spikes(incidents.getAllIncidents(), LocalDateTime.now())) {
+            var anchor = spike.anchor();
+            result.add(Map.of("anchor", anchor.getIncidentId(), "category", anchor.getCategory(),
+                    "confirmed", outageConfirmed(anchor.getIncidentId()), "baseline", spike.baseline(),
+                    "tickets", spike.recent().stream().map(Incident::getIncidentId).toList(),
+                    "recommendation", recommendation(anchor)));
+        }
+        return result;
+    }
+
     private Map<String, Object> detail(Incident i, User actor) {
         Map<String, Object> data = incidentData(i, actor);
         List<Object> logs = new ArrayList<>();
@@ -407,6 +457,7 @@ public final class WebServer {
             logs.add(item);
         }
         data.put("history", logs);
+        if (actions(i, actor).contains("assign")) data.put("recommendation", recommendation(i));
         List<Object> requests = new ArrayList<>();
         for (InformationRequest request : i.getInformationRequests()) {
             List<Object> replies = new ArrayList<>();
