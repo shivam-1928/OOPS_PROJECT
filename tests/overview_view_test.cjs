@@ -1,5 +1,5 @@
 const assert = require('node:assert/strict');
-const { attentionReason, buildView } = require('../frontend/overview.js');
+const { attentionReason, buildView, buildAnalytics } = require('../frontend/overview.js');
 let checks = 0;
 const check = (actual, expected) => { assert.deepEqual(actual, expected); checks++; };
 const row = (id, status, actions = [], extra = {}) => ({ incidentId: id, title: id, status, actions, priority: 'P3', createdAt: '2026-11-21T10:00:00', slaStatus: 'WITHIN SLA', ...extra });
@@ -31,3 +31,19 @@ check(buildView(rows, [{ incidentId: 'INC3', timestamp: '2026-11-22', entryIndex
 check(buildView(warnings, [], 'TECHNICIAN').attention.length, 0);
 check(buildView([row('INC10', 'CLASSIFIED', ['assign']), row('INC2', 'CLASSIFIED', ['assign'], { priority: 'P1' })], [], 'ADMINISTRATOR').attention.map(r => r.incidentId), ['INC2', 'INC10']);
 console.log(`Overview: ${checks} assertions passed.`);
+
+const analyticsRows = [
+ { category: 'NETWORK', createdAt: '2026-11-22T09:00:00' },
+ { category: 'NETWORK', createdAt: '2026-11-22T10:00:00' },
+ { category: 'HARDWARE', createdAt: '2026-11-21T23:59:00' },
+ { category: 'NETWORK', createdAt: '2026-10-23T12:00:00' },
+ { category: 'EMAIL', createdAt: '2026-11-23T12:00:00' }
+];
+const analytics = buildAnalytics(analyticsRows, '', new Date(2026, 10, 22, 12));
+check(analytics.values.length, 30);
+check(analytics.values.slice(-2), [1, 2]);
+check(analytics.values.reduce((a,b) => a+b, 0), 3);
+check(analytics.counts.find(row => row.category === 'NETWORK').count, 3);
+check(buildAnalytics(analyticsRows, 'HARDWARE', new Date(2026,10,22,12)).values.reduce((a,b)=>a+b,0), 1);
+check(buildAnalytics([], '', new Date(2026,10,22)).values, Array(30).fill(0));
+console.log('Analytics: 6 date-window, category and empty-data assertions passed.');

@@ -113,6 +113,8 @@ try:
     incident = call(admin, path + '/assign', {'strategy':'SKILL'})
     check(incident['technicianId'] == 'T001' and incident['status'] == 'ASSIGNED', 'Skill assignment')
     check(incident['history'][-1]['previousState'] == 'CLASSIFIED', 'Audit captures pre-assignment state')
+    assignment_people = call(admin, '/incidents')['users']
+    check(next(user for user in assignment_people if user['userId'] == incident['technicianId'])['username'] == 'tech1', 'Admin can identify assigned technician by current username and ID')
     call(admin, path + '/assign', {'strategy':'LOAD'}, status=403)
     call(tech1, path + '/resolve', {'notes':'not yet'}, status=403)
     call(tech2, path + '/acknowledge', {}, status=403)
@@ -221,6 +223,48 @@ try:
     call(admin, '/users/T001/active', {'active': 'false'}, status=409)
     call(admin, '/users/E001/active', {'active': 'false'}, status=409)
     check(call(tech1, '/session')['active'] and call(employee, '/session')['active'], 'Outstanding tickets block deactivation without losing sessions')
+    # Manual reassignment is admin-only, guarded against stale confirmations and atomic.
+    baseline = {t['userId']: t['activeIncidentCount'] for t in call(admin, '/technicians')['technicians']}
+    manual = call(employee, '/incidents', {**payload, 'title': 'Manual reassignment test'}, status=201)
+    manual_path = '/incidents/' + manual['incidentId']
+    manual = call(admin, manual_path + '/assign', {'strategy': 'SKILL'})
+    transfer = {'technicianId': 'T002', 'expectedTechnicianId': 'T001', 'expectedStatus': 'ASSIGNED'}
+    for outsider in (employee, tech1, tech2):
+        call(outsider, manual_path + '/reassign', transfer, status=403)
+    call(admin, manual_path + '/reassign', {}, status=400)
+    call(admin, manual_path + '/reassign', {**transfer, 'technicianId': 'T001'}, status=400)
+    call(admin, manual_path + '/reassign', {**transfer, 'technicianId': 'UNKNOWN'}, status=400)
+    call(admin, manual_path + '/reassign', transfer, status=409)
+    check(call(admin, manual_path)['technicianId'] == 'T001', 'Unavailable destination leaves owner unchanged')
+    call(admin, '/technicians/T002/availability', {'available': 'true'})
+    call(tech1, manual_path + '/acknowledge', {})
+    call(tech1, manual_path + '/start', {})
+    call(tech1, manual_path + '/request-information', {'question': 'What changed before the outage?'})
+    prior = call(employee, manual_path + '/add-information', {'notes': 'A driver update.'})
+    call(admin, manual_path + '/reassign', transfer, status=409)
+    changed = call(admin, manual_path + '/reassign', {**transfer, 'expectedStatus': 'WAITING_FOR_EMPLOYEE'})
+    check(changed['status'] == 'ASSIGNED' and changed['technicianId'] == 'T002', 'Manual transfer returns ticket to assigned')
+    check(changed['informationRequests'] == prior['informationRequests'] and changed['description'] == prior['description'], 'Transfer retains questions, replies and description')
+    check(all(changed[key] == prior[key] for key in ('createdAt', 'acknowledgedAt', 'responseDeadline', 'resolutionDeadline')), 'Transfer retains timestamps and original SLA targets')
+    check(changed['history'][-1]['action'] == 'REASSIGN' and changed['history'][-1]['previousState'] == 'WAITING_FOR_EMPLOYEE' and 'T001' in changed['history'][-1]['description'] and 'T002' in changed['history'][-1]['description'], 'Audit records old and new owner')
+    workload = {t['userId']: t['activeIncidentCount'] for t in call(admin, '/technicians')['technicians']}
+    check(workload['T001'] == baseline['T001'] and workload['T002'] == baseline['T002'] + 1, 'Workload moves once between technicians')
+    check('reassigned from you' in call(tech1, '/incidents')['notifications'][-1], 'Old technician receives removal notification')
+    check('reassigned to you' in call(tech2, '/incidents')['notifications'][-1], 'New technician notified')
+    check('T002' in call(employee, '/incidents')['notifications'][-1], 'Employee notified of new owner')
+    call(tech1, manual_path, status=403)
+    call(tech1, manual_path + '/acknowledge', {}, status=403)
+    check(call(tech2, manual_path)['actions'] == ['acknowledge'], 'New owner can acknowledge')
+    call(admin, manual_path + '/reassign', transfer, status=409)
+    after_ack = call(tech2, manual_path + '/acknowledge', {})
+    check(after_ack['acknowledgedAt'] == prior['acknowledgedAt'], 'New owner acknowledgement preserves first response timestamp')
+    call(tech2, manual_path + '/start', {})
+    call(tech2, manual_path + '/resolve', {'notes': 'Fixed after handover.'})
+    call(admin, manual_path + '/reassign', {**transfer, 'technicianId': 'T001', 'expectedTechnicianId': 'T002', 'expectedStatus': 'RESOLVED'}, status=403)
+    call(employee, manual_path + '/verify', {})
+    call(employee, manual_path + '/close', {})
+    final_workload = {t['userId']: t['activeIncidentCount'] for t in call(admin, '/technicians')['technicians']}
+    check(final_workload == baseline, 'Closing transferred ticket releases only its new owner workload')
     call(employee, '/logout', {})
     call(employee, '/session', status=401)
     with anonymous.open(base + '/') as response:

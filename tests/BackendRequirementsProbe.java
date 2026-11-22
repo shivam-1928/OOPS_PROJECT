@@ -26,7 +26,7 @@ public class BackendRequirementsProbe {
         try { incidents.acknowledgeIncident(escalated.getIncidentId(), technician.getUserId()); } catch (IllegalStateException error) { acknowledgeBlocked = true; }
         try { incidents.assignIncident(escalated.getIncidentId(), List.of(technician), new SkillBasedAssignment()); } catch (IllegalStateException error) { assignmentBlocked = true; }
         if (escalated.getStatus() == Incident.Status.ESCALATED && acknowledgeBlocked && assignmentBlocked)
-            System.out.println("GAP: An assigned, escalated incident cannot be acknowledged or reassigned through the existing service.");
+            System.out.println("POLICY: An assigned, escalated incident cannot be acknowledged or automatically assigned again. Administrators can now use manual reassignment to a different available technician.");
         Incident late = overdue("PROBE_LATE_RESPONSE");
         incidents.createIncident(late); sla.startTracking(late);
         incidents.assignIncident(late.getIncidentId(), List.of(technician), new SkillBasedAssignment());

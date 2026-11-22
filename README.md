@@ -30,8 +30,8 @@ The original console entry point `itsm.Main` remains available as a separate in-
 
 ## Verification
 
-728 assertions passed across the existing API/domain/frontend suites and new database tests. The database suite uses a temporary copy of the supplied sample and checks registration, legacy-password compatibility, repeated restarts, complete question/reply exchanges, preserved timestamps/deadlines, profile/password changes, workload, activation, transaction rollback, foreign keys and stale-writer conflicts. The real local app also retained a browser-created test ticket across a server restart.
+The current upload passes 838 automated assertions across the API, domain services, frontend views, storage integration and legacy database compatibility suites. The database suite uses a temporary copy of the supplied sample and checks registration, legacy-password compatibility, repeated restarts, complete question/reply exchanges, preserved timestamps/deadlines, profile/password changes, workload, activation, transaction rollback, foreign keys and stale-writer conflicts. The real local app also retained a browser-created test ticket across a server restart.
 
-After compiling, run `python tests/storage_integration_test.py --java <path-to-java.exe>` for the 83 database checks and `python tests/web_api_test.py --java <path-to-java.exe>` for 442 API checks. Frontend/service test commands and remaining domain-policy limitations are documented below.
+After compiling, run `python tests/storage_integration_test.py --java <path-to-java.exe>` for the 102 database checks and `python tests/web_api_test.py --java <path-to-java.exe>` for 489 API checks. The clean distributable sample contains no incidents; the database suite creates historical fixtures only inside its disposable copy. Frontend/service test commands and remaining domain-policy limitations are documented below.
 
 See [frontend/README.md](frontend/README.md) for the incident workflows, API, existing backend limitations, and verification commands.

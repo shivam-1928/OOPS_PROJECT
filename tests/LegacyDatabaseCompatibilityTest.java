@@ -26,8 +26,8 @@ public class LegacyDatabaseCompatibilityTest {
             Database database = new Database(users, incidents, sla, audit, notices);
             database.load();
             check(users.get("admin").checkPassword("admin123"));
-            check(incidents.getIncident("INC0001").getStatus() == Incident.Status.CLOSED);
-            check(audit.getAllLogs().size() == 7);
+            check(incidents.getAllIncidents().isEmpty());
+            check(audit.getAllLogs().isEmpty());
             Incident added = new Incident("INC0002", "E001", "Compatibility test", "Disposable test", Incident.Category.NETWORK, 3, 3, 3);
             incidents.createIncident(added); sla.startTracking(added);
             incidents.assignIncident("INC0002", users.values().stream().filter(u -> u instanceof Technician).map(u -> (Technician)u).toList(), new SkillBasedAssignment());

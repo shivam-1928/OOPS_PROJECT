@@ -1,0 +1,137 @@
+/* Visual draft: Graphite and Emerald / Plus Jakarta Sans + Inter + JetBrains Mono.
+   Kept separate so subsequent palette trials can replace this stylesheet. */
+:root {
+  --primary: #047857;
+  --primary-hover: #065f46;
+  --dark: #18181b;
+  --heading-font: 'Plus Jakarta Sans', sans-serif;
+  --mono-font: 'JetBrains Mono', monospace;
+  --sage: #6ee7b7;
+  --ink: #18181b;
+  --cream: #f4f4f5;
+  --table: #ffffff;
+  --muted: #52525b;
+  --line: #e4e4e7;
+  --chart-1: #047857;
+  --chart-2: #34d399;
+  --chart-3: #6ee7b7;
+  --chart-4: #475569;
+  --chart-5: #a1a1aa;
+  --chart-6: #d4d4d8;
+  --ai-accent: #0ea5e9;
+  --ai-gradient: linear-gradient(110deg, #0ea5e9, #6366f1);
+  font-family: Inter, system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+body { font-size:14px; }
+h1, h2, h3, .incident-heading {
+  font-family:var(--heading-font); font-weight:600; letter-spacing:-.025em;
+}
+h1, .incident-heading { font-size:28px; line-height:1.3; }
+h2 { font-size:18px; }
+h3 { font-size:16px; }
+.sidebar, .topbar { background:var(--dark); color:#f8fafc; }
+.sidebar { box-shadow:none; }
+.sidebar-rule { background:#3f3f46; }
+.sidebar :is(button,a):focus-visible { outline-color:#a7f3d0; }
+.sidebar .brand, .sidebar .nav-item { color:#d1fae5; }
+.sidebar .brand-symbol>span, .sidebar small, .sidebar .nav-section { color:#6ee7b7; }
+.sidebar .nav-section { font-family:Inter,sans-serif; font-size:12px; font-weight:500; letter-spacing:.06em; }
+.nav-item .nav-label { font-size:14px; font-weight:500; }
+.nav-item img { filter:grayscale(1) brightness(0) invert(1); opacity:.75; }
+.nav-item.active { background:#064e3b; }
+.nav-item.active img { opacity:1; }
+.nav-item.active:before { background:#6ee7b7; }
+.nav-item:hover { background:#27272a; }
+.sidebar .avatar { color:#d1fae5; border-color:#34d399; }
+.topbar { border-color:#3f3f46; }
+.breadcrumb { color:#a7f3d0; }
+.breadcrumb strong { color:#ffffff; }
+.profile-button { background:#047857; color:#ffffff; border-color:#34d399; }
+.profile-button:hover { box-shadow:0 0 0 4px #ffffff18; }
+.profile-panel { background:#ffffff; color:var(--ink); box-shadow:0 12px 30px #18181b18; }
+.profile-panel strong { color:var(--ink); }
+.primary-button { background:var(--primary); border-color:var(--primary); color:#ffffff; }
+.primary-button:hover:not(:disabled) { background:var(--primary-hover); border-color:var(--primary-hover); }
+.secondary-button { background:#ffffff; border-color:#d4d4d8; color:var(--ink); }
+.secondary-button:hover:not(:disabled) { background:#ecfdf5; border-color:#6ee7b7; }
+button:focus-visible, a:focus-visible { outline-color:#047857; }
+input, select, textarea { background:#ffffff; border-color:#d4d4d8; font-size:14px; }
+input:focus, select:focus, textarea:focus { outline:2px solid #047857; outline-offset:2px; }
+.account-form label, .auth-form label { font-size:13px; font-weight:500; }
+.account-form input, .auth-form input { font-weight:400; }
+.incident-link, .sort-button:hover, .overview-ticket:hover strong { color:#065f46; }
+table { font-size:13px; font-variant-numeric:tabular-nums; }
+th { background:#f4f4f5; color:#52525b; font-size:12px; font-weight:500; letter-spacing:.025em; }
+td { font-size:13px; }
+.incident-title { font-size:14px; }
+.data-register tbody tr:hover, #incident-preview tbody tr:hover { background:#f0fdf4; }
+.table-scroll tbody tr:hover, .technician-table tbody tr:hover, .sla-table tbody tr:hover { background:#f0fdf4; }
+.technician-save-message { background:#ecfdf5; border-color:#a7f3d0; color:#065f46; }
+dialog::backdrop { background:#18181b66; }
+.notification-options:hover { background:#ecfdf5; }
+.incident-id, .incident-link, .detail-id, .overview-ticket-id, .sla-countdown, .sla-deadline time {
+  font-family:var(--mono-font); font-size:12px;
+}
+.overview-activity time, #audit-rows td:first-child { font-family:var(--mono-font); font-size:12px; }
+.incident-summary strong { font-family:var(--heading-font); font-size:34px; font-weight:600; letter-spacing:-.04em; }
+.overview-profile { background:#ffffff; }
+.overview-avatar { background:#d1fae5; color:#065f46; }
+.overview-activity>li:before { background:#047857; }
+.overview-sla { border-color:#ea580c; background:#fff7ed; }
+.overview-analytics { border-color:var(--line); }
+.category-donut>span { background:var(--cream); font-family:var(--heading-font); font-weight:600; }
+.category-donut small { font-family:Inter,sans-serif; font-weight:400; }
+.frequency-chart svg text { font-family:Inter,sans-serif; fill:#6b7280; }
+#frequency-grid line { stroke:#e4e4e7; }
+#frequency-area { fill:#047857; fill-opacity:.09; }
+#frequency-line { stroke:#047857; }
+#frequency-bars rect { fill:#047857; opacity:.18; }
+.priority, .status, .sla-state { font-size:11px; font-weight:600; line-height:1.5; }
+.priority-p1 { background:#fee2e2; color:#991b1b; }
+.priority-p2 { background:#ffedd5; color:#9a3412; }
+.priority-p3 { background:#fef9c3; color:#854d0e; }
+.priority-p4 { background:#dcfce7; color:#166534; }
+.status { background:#e0f2fe; color:#075985; }
+.status.neutral { background:#f1f5f9; color:#475569; }
+.status[data-status='IN_PROGRESS'], .status[data-status='ACKNOWLEDGED'], .status[data-status='ASSIGNED'] { background:#e0f2fe; color:#075985; }
+.status[data-status='RESOLVED'], .status[data-status='VERIFIED'], .status[data-status='CLOSED'] { background:#f1f5f9; color:#475569; }
+.status[data-status='WAITING_FOR_EMPLOYEE'] { background:#fef9c3; color:#854d0e; }
+.status[data-status='ESCALATED'] { background:#fee2e2; color:#991b1b; }
+.sla-state { background:#f1f5f9; color:#475569; }
+.sla-state-breached, .sla-label.breached { background:#fee2e2; color:#991b1b; }
+.sla-state-risk { background:#fef9c3; color:#854d0e; }
+.notice { background:#ecfdf5; border-color:#a7f3d0; color:#065f46; }
+.notice.error, #reassign-dialog .reassignment-warning { background:#fef2f2; border-color:#dc2626; color:#991b1b; }
+#reassign-dialog .reassignment-warning>strong, .reassign-warning-symbol { color:#991b1b; }
+#confirm-reassign { background:#dc2626; border-color:#dc2626; color:#ffffff; }
+#confirm-reassign:hover:not(:disabled) { background:#b91c1c; border-color:#b91c1c; }
+.information-reply, .employee-question { border-color:#6ee7b7; }
+.notification-card { background:#ffffff; }
+.notification-card.unread { background:#eff6ff; }
+.notification-context-menu { background:#ffffff; }
+dialog { background:#ffffff; box-shadow:0 24px 80px #18181b25; }
+.auth-page { background:#18181b; color:#f8fafc; --ink:#f8fafc; --muted:#a7f3d0; --line:#484477; }
+.auth-page h1 { font-family:var(--heading-font); font-size:32px; font-weight:600; }
+.auth-brand { color:#ffffff; }
+.auth-brand>span, .auth-page .eyebrow { color:#6ee7b7; }
+.auth-brand strong { font-family:Inter,sans-serif; }
+.auth-form input { background:#27272a; color:#ffffff; border-color:#71717a; }
+.auth-form input:focus { outline-color:#6ee7b7; }
+.auth-form input:autofill { box-shadow:0 0 0 1000px #27272a inset; -webkit-text-fill-color:#ffffff; }
+.auth-submit { background:#047857; color:#ffffff; font-weight:500; }
+.auth-submit:hover { background:#065f46; }
+.auth-intro, .auth-switch, .auth-demo, .auth-help { color:#a7f3d0; }
+.auth-switch a { color:#ffffff; }
+.auth-message { background:#27272a; color:#d1fae5; border-color:#6ee7b7; }
+.auth-page :is(a,button):focus-visible { outline-color:#6ee7b7; }
+@media(max-width:600px) { h1, .incident-heading { font-size:26px; } .incident-summary strong { font-size:28px; } }
+
+/* Crisp, monochrome Lucide outlines use the navigation text color directly. */
+.sidebar-icon{width:23px;height:23px;flex:0 0 23px;display:block;pointer-events:none;stroke-width:1.75}
+.nav-item{gap:25px}.nav-item.active{color:#ecfdf5}.nav-item.active .sidebar-icon{color:#6ee7b7}
+.notification-nav-symbol{display:grid;place-items:center;width:23px;height:23px;flex:0 0 23px}
+.notification-nav-symbol .sidebar-icon{width:23px;height:23px}
+.sidebar .brand-symbol>span{color:#34d399}.notification-unread-dot{border-color:var(--dark)}
+.sidebar .nav-item{color:#e4e4e7}.sidebar small,.sidebar .nav-section{color:#a1a1aa}
+.breadcrumb{color:#d4d4d8}.sidebar .nav-item.active{color:#ecfdf5}
