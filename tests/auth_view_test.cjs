@@ -35,7 +35,7 @@ function harness(mode, data, request = async () => ({})) {
   check(html.includes('id="login-dialog"'), false);
   for (const page of ['signin', 'signup']) {
     const document = fs.readFileSync(require.resolve(`../frontend/${page}.html`), 'utf8');
-    check(document.includes('class="auth-page"'), true); check(document.includes('class="sidebar"'), false);
+    check(/<body\b[^>]*\bclass="[^"]*\bauth-page\b/.test(document), true); check(document.includes('class="sidebar"'), false);
   }
   console.log(`Authentication: ${checks} form and standalone-page assertions passed.`);
 })().catch(error => { console.error(error); process.exitCode = 1; });
