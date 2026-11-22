@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import itsm.model.Incident;
 import itsm.model.Technician;
@@ -101,7 +102,29 @@ public class IncidentService {
         requireAssignedTechnician(incident, technicianId);
         requireStatus(incident, Incident.Status.ASSIGNED);
         incident.setStatus(Incident.Status.ACKNOWLEDGED);
-        incident.setAcknowledgedAt(LocalDateTime.now());
+        if (incident.getAcknowledgedAt() == null) incident.setAcknowledgedAt(LocalDateTime.now());
+    }
+
+    public Incident reassignIncident(String incidentId, String expectedTechnicianId, Incident.Status expectedStatus,
+                                     String technicianId, Collection<Technician> technicians) {
+        Incident incident = getIncident(incidentId);
+        if (incident.getTechnicianId() == null || !Set.of(Incident.Status.ASSIGNED, Incident.Status.ACKNOWLEDGED,
+                Incident.Status.IN_PROGRESS, Incident.Status.WAITING_FOR_EMPLOYEE, Incident.Status.ESCALATED).contains(incident.getStatus())) {
+            throw new IllegalStateException("Only assigned, active incidents can be reassigned.");
+        }
+        if (!incident.getTechnicianId().equals(expectedTechnicianId) || incident.getStatus() != expectedStatus) {
+            throw new IllegalStateException("The ticket changed while you were choosing a technician. Close this confirmation and refresh the ticket.");
+        }
+        if (incident.getTechnicianId().equals(technicianId)) throw new IllegalArgumentException("Choose a different technician.");
+        Technician previous = technicians.stream().filter(t -> t.getUserId().equals(incident.getTechnicianId())).findFirst()
+                .orElseThrow(() -> new IllegalStateException("The current technician could not be found."));
+        Technician next = technicians.stream().filter(t -> t.getUserId().equals(technicianId)).findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Choose a valid technician."));
+        if (!next.isAvailable()) throw new IllegalStateException("The selected technician is inactive or unavailable. Refresh and choose another technician.");
+        // Preserve the first response timestamp, original deadlines and all earlier work.
+        previous.decreaseWorkload(); next.increaseWorkload();
+        incident.setTechnicianId(next.getUserId()); incident.setStatus(Incident.Status.ASSIGNED);
+        return incident;
     }
 
     public void startInvestigation(String incidentId, String technicianId) {

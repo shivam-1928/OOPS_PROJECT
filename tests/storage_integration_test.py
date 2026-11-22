@@ -66,9 +66,19 @@ try:
         shutil.copy2(sample, database)
         process, base = start(database)
         admin = login(base, 'admin', 'admin123')
-        login(base, 'employee', 'emp123')
+        seed_employee = login(base, 'employee', 'emp123')
         tech = login(base, 'tech1', 'tech123')
         login(base, 'tech2', 'tech123')
+        # The distributable sample is intentionally empty; create historical test data here only.
+        if not call(base, admin, '/incidents')['incidents']:
+            seed = call(base, seed_employee, '/incidents', dict(title='Temporary historical fixture', description='Created only in the disposable test database.', category='NETWORK', impact=3, urgency=3, businessCriticality=3), status=201)
+            seed_path = '/incidents/' + seed['incidentId']
+            call(base, admin, seed_path + '/assign', {'strategy': 'SKILL'})
+            call(base, tech, seed_path + '/acknowledge', {})
+            call(base, tech, seed_path + '/start', {})
+            call(base, tech, seed_path + '/resolve', {'notes': 'Temporary fixture resolved.'})
+            call(base, seed_employee, seed_path + '/verify', {})
+            call(base, seed_employee, seed_path + '/close', {})
         existing = call(base, admin, '/incidents')
         check(existing['storage'] == 'SQLITE', 'Storage status is truthful')
         check(any(i['incidentId'] == 'INC0001' and i['status'] == 'CLOSED' for i in existing['incidents']), 'Supplied sample restored without replacing latest backend')
@@ -98,7 +108,14 @@ try:
         call(base, tech, path + '/request-information', {'question': 'Does Ethernet work?'})
         before = call(base, employee, path)
         notices = call(base, employee, '/incidents')['notifications']
-        call(base, employee, '/profile', dict(name='Updated Stored Employee', username='stored.employee', email='updated@itsm.local', department='Engineering'))
+        import base64
+        # Real tiny JPEG fixture, generated once for API and persistence verification.
+        picture = 'data:image/jpeg;base64,' + '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAACAAIDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDtqKKK5jE//9k='
+        fields = dict(name='Updated Stored Employee', username='stored.employee', email='updated@itsm.local', department='Engineering', phone='+91 98765 43210', profilePicture=picture)
+        call(base, employee, '/profile', dict(fields, phone='abc'), status=400)
+        call(base, employee, '/profile', dict(fields, profilePicture='data:image/jpeg;base64,bad'), status=400)
+        call(base, employee, '/profile', fields)
+        call(base, employee, '/profile', {key: value for key, value in fields.items() if key not in ('phone', 'profilePicture')})
         call(base, employee, '/profile/password', dict(currentPassword=registration['password'], newPassword='persisted-test-password'))
         call(base, admin, '/technicians/T001/availability', {'available': 'false'})
         call(base, admin, '/technicians/T001/skills', {'skill': 'DATABASE'})
@@ -113,7 +130,9 @@ try:
         after = call(base, employee, path)
         check(after == before, 'Exact incident content, status, history, deadlines, question/reply timestamps survive restart')
         check(call(base, employee, '/incidents')['notifications'] == notices, 'Notification identity/text/order survive restart')
-        check(call(base, employee, '/session')['department'] == 'Engineering', 'Profile saved')
+        restored_profile = call(base, employee, '/session')
+        check(restored_profile['department'] == 'Engineering', 'Profile saved')
+        check(restored_profile['phone'] == fields['phone'] and restored_profile['profilePicture'] == picture, 'Phone and picture survive omitted fields and server restart')
         technician = call(base, admin, '/technicians/T001')
         check(not technician['available'] and 'DATABASE' in technician['skills'] and technician['activeIncidentCount'] == 1, 'Skills, availability and derived workload survive restart')
         check(call(base, admin, '/incidents/INC0001') == original_ticket, 'Imported historical ticket remains unchanged')
@@ -152,6 +171,17 @@ try:
         all_rows = call(second_base, other, '/incidents')['incidents']
         check(any(row['incidentId'] == created['incidentId'] for row in all_rows), 'Conflict reloads latest committed data')
         check(all(row['title'] != 'Stale writer must not overwrite' for row in all_rows), 'Revision guard prevents lost updates')
+        stop(second)
+        active_path = '/incidents/' + created['incidentId']
+        assigned = call(base, admin, active_path + '/assign', {'strategy': 'LOAD'})
+        call(base, admin, '/technicians/T001/availability', {'available': 'true'})
+        transferred = call(base, admin, active_path + '/reassign', dict(technicianId='T001', expectedTechnicianId=assigned['technicianId'], expectedStatus='ASSIGNED'))
+        check(transferred['technicianId'] == 'T001' and transferred['history'][-1]['action'] == 'REASSIGN', 'Reassignment committed with audit')
+        stop(process)
+        process, base = start(database)
+        tech = login(base, 'tech1', 'tech123')
+        restored_transfer = call(base, tech, active_path)
+        check(restored_transfer == {**transferred, 'actions': ['acknowledge']}, 'Reassignment, audit and new-owner access survive restart')
         check(hashlib.sha256(sample.read_bytes()).digest() == original_sample, 'Supplied sample file is untouched')
         print(f'PASS: {checks} SQLite, migration, registration, restart, rollback and conflict assertions.')
 finally:

@@ -100,7 +100,7 @@
     const row = state.detail; if (!row || !$('#technician-assignment-list')) return;
     const all = $('#technician-assignment-view').value === 'all';
     const records = row.incidents.filter(i => all || i.status !== 'CLOSED').sort((a, b) => a.priority.localeCompare(b.priority) || a.incidentId.localeCompare(b.incidentId));
-    $('#technician-assignment-list').innerHTML = records.length ? `<ul class="technician-assignment-list">${records.map(i => `<li><div><button class="incident-link" data-technician-incident="${escape(i.incidentId)}">${escape(i.incidentId)}</button><span class="priority priority-${escape(i.priority.toLowerCase())}">${escape(i.priority)}</span><span class="status neutral">${escape(human(i.status))}</span></div><p>${escape(i.title)}</p></li>`).join('')}</ul>` : `<p class="muted">${row.allAssignmentsVisible ? 'No ' : 'No visible '}${all ? '' : 'active '}assigned incidents.</p>`;
+    $('#technician-assignment-list').innerHTML = records.length ? `<ul class="technician-assignment-list">${records.map(i => `<li><div><button class="incident-link" data-technician-incident="${escape(i.incidentId)}">${escape(i.incidentId)}</button><span class="priority priority-${escape(i.priority.toLowerCase())}">${escape(i.priority)}</span><span data-status="${escape(i.status)}" class="status neutral">${escape(human(i.status))}</span></div><p>${escape(i.title)}</p></li>`).join('')}</ul>` : `<p class="muted">${row.allAssignmentsVisible ? 'No ' : 'No visible '}${all ? '' : 'active '}assigned incidents.</p>`;
   }
   async function openDetail(id) {
     if (state.saving) return;

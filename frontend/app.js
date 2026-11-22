@@ -59,7 +59,7 @@ profileButton.addEventListener('click', () => {
 document.addEventListener('click', event => {
   if (!event.target.closest('.profile-control')) closeProfile();
   const close = event.target.closest('[data-close]');
-  if (close) document.getElementById(close.dataset.close).close();
+  if (close) { if (close.dataset.close === 'detail-dialog' && window.closeIncidentPanel) window.closeIncidentPanel(); else document.getElementById(close.dataset.close).close(); }
 });
 document.addEventListener('keydown', event => {
   if (event.key !== 'Escape' || document.querySelector('dialog[open]')) return;

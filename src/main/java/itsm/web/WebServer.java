@@ -164,10 +164,19 @@ public final class WebServer {
             if (!email.matches("[^\\s@]+@[^\\s@]+\\.[^\\s@]+")) throw new IllegalArgumentException("Enter a valid email address.");
             if (users.values().stream().anyMatch(u -> u != actor && u.getUsername().equalsIgnoreCase(username))) throw new HttpError(409, "That username is already in use.");
             String department = actor instanceof Employee ? bounded(f, "department", 100) : null;
+            String phone = f.getOrDefault("phone", actor.getPhone()), picture = f.getOrDefault("profilePicture", actor.getProfilePicture());
+
+            // Validate optional profile fields before changing the signed-in account.
+
+            User validation = new Administrator("validation", "validation", "validation", "validation", "validation@example.com");
+
+            validation.setPhone(phone); validation.setProfilePicture(picture);
+
             // Validate the complete update before changing any fields or the username lookup.
             Map<String, User> renamed = new LinkedHashMap<>();
             users.forEach((key, user) -> renamed.put(user == actor ? username : key, user));
-            actor.setName(name); actor.setUsername(username); actor.setEmail(email);
+            actor.setName(name); actor.setUsername(username); actor.setEmail(email); actor.setPhone(phone); actor.setProfilePicture(picture);
+
             if (actor instanceof Employee e) e.setDepartment(department);
             users.clear(); users.putAll(renamed);
             json(x, 200, profileData(actor)); return;
@@ -293,6 +302,28 @@ public final class WebServer {
                         notes = "Assigned using " + choice.getStrategyName();
                         notifications.sendInAppNotification(i.getTechnicianId(), "Incident " + i.getIncidentId() + " has been assigned to you.");
                     }
+                    case "reassign" -> {
+
+                        String previousId = i.getTechnicianId();
+
+                        String nextId = required(f, "technicianId");
+
+                        incidents.reassignIncident(i.getIncidentId(), required(f, "expectedTechnicianId"),
+
+                                Incident.Status.valueOf(required(f, "expectedStatus")), nextId, technicians());
+
+                        Technician next = technicians().stream().filter(t -> t.getUserId().equals(nextId)).findFirst().orElseThrow();
+
+                        notes = "Manually reassigned from " + previousId + " to " + nextId + " (" + next.getUsername() + "). Original SLA deadlines and earlier work retained; new technician must acknowledge.";
+
+                        notifications.sendInAppNotification(previousId, "Incident " + i.getIncidentId() + " has been reassigned from you to " + nextId + " (" + next.getUsername() + ").");
+
+                        notifications.sendInAppNotification(nextId, "Incident " + i.getIncidentId() + " has been reassigned to you by administrator " + actor.getUserId() + ". Please acknowledge it.");
+
+                        notifications.sendInAppNotification(i.getEmployeeId(), "Incident " + i.getIncidentId() + " is now assigned to " + next.getName() + " · " + nextId + " (" + next.getUsername() + ").");
+
+                    }
+
                     case "acknowledge" -> incidents.acknowledgeIncident(i.getIncidentId(), actor.getUserId());
                     case "start" -> incidents.startInvestigation(i.getIncidentId(), actor.getUserId());
                     case "request-information" -> {
@@ -331,6 +362,10 @@ public final class WebServer {
 
     private List<String> actions(Incident i, User actor) {
         List<String> result = new ArrayList<>();
+        if (actor instanceof Administrator && i.getTechnicianId() != null && Set.of(Incident.Status.ASSIGNED,
+
+                Incident.Status.ACKNOWLEDGED, Incident.Status.IN_PROGRESS, Incident.Status.WAITING_FOR_EMPLOYEE, Incident.Status.ESCALATED).contains(i.getStatus())) result.add("reassign");
+
         if (actor instanceof Administrator && i.getTechnicianId() == null && Set.of(Incident.Status.CLASSIFIED, Incident.Status.ESCALATED).contains(i.getStatus())) result.add("assign");
         if (actor instanceof Employee && i.getEmployeeId().equals(actor.getUserId())) {
             result.add("add-information");
@@ -388,12 +423,15 @@ public final class WebServer {
     private Map<String, Object> userData(User user) {
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("userId", user.getUserId()); data.put("name", user.getName()); data.put("role", user.getRole());
-        if (user instanceof Technician t) { data.put("skills", t.getSkills()); data.put("available", t.isAvailable()); data.put("activeIncidentCount", t.getActiveIncidentCount()); }
+        if (user instanceof Technician t) { data.put("username", t.getUsername()); data.put("skills", t.getSkills()); data.put("available", t.isAvailable()); data.put("activeIncidentCount", t.getActiveIncidentCount()); }
+
         return data;
     }
     private Map<String, Object> profileData(User user) {
         Map<String, Object> data = userData(user);
         data.put("username", user.getUsername()); data.put("email", user.getEmail()); data.put("active", user.isActive());
+        data.put("phone", user.getPhone()); data.put("profilePicture", user.getProfilePicture());
+
         if (user instanceof Employee employee) data.put("department", employee.getDepartment());
         return data;
     }
@@ -410,6 +448,8 @@ public final class WebServer {
     }
     private Map<String, Object> technicianData(Technician technician, User actor) {
         Map<String, Object> data = userData(technician);
+        data.remove("username"); // Assignment identity comes from incident metadata; keep the general directory unchanged.
+
         data.put("email", technician.getEmail());
         data.put("active", technician.isActive());
         data.put("canManage", actor instanceof Administrator);
