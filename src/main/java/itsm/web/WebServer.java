@@ -125,6 +125,9 @@ public final class WebServer {
     private void api(HttpExchange x) throws IOException {
         String path = x.getRequestURI().getPath();
         String method = x.getRequestMethod();
+        if (path.equals("/api/greeting") && method.equals("GET")) {
+            json(x, 200, Map.of("message", new GreetingService().greeting(), "timeZone", "Asia/Kolkata")); return;
+        }
         if (path.equals("/api/capabilities") && method.equals("GET")) { json(x, 200, Map.of("registration", storage != null)); return; }
         if (path.equals("/api/register") && method.equals("POST")) {
             if (storage == null) throw new HttpError(503, "Registration is unavailable on this server. Open the database-connected app.");
@@ -578,7 +581,7 @@ public final class WebServer {
         Path file = frontend.resolve(request.equals("/") ? "index.html" : request.substring(1)).normalize();
         if (!file.startsWith(frontend) || !Files.isRegularFile(file) || !file.toRealPath().startsWith(frontend)) throw new HttpError(404, "File not found.");
         String name = file.getFileName().toString();
-        String type = name.endsWith(".html") ? "text/html; charset=utf-8" : name.endsWith(".css") ? "text/css; charset=utf-8" : name.endsWith(".js") ? "text/javascript; charset=utf-8" : name.endsWith(".png") ? "image/png" : name.endsWith(".pdf") ? "application/pdf" : "text/plain; charset=utf-8";
+        String type = name.endsWith(".html") ? "text/html; charset=utf-8" : name.endsWith(".css") ? "text/css; charset=utf-8" : name.endsWith(".js") ? "text/javascript; charset=utf-8" : name.endsWith(".png") ? "image/png" : (name.endsWith(".jpg") || name.endsWith(".jpeg")) ? "image/jpeg" : name.endsWith(".pdf") ? "application/pdf" : "text/plain; charset=utf-8";
         byte[] bytes = Files.readAllBytes(file);
         x.getResponseHeaders().set("Content-Type", type); x.getResponseHeaders().set("Cache-Control", "no-cache");
         x.sendResponseHeaders(200, bytes.length); x.getResponseBody().write(bytes);

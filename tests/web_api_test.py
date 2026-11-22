@@ -42,6 +42,9 @@ try:
         check(actual == status, f'{path}: expected {status}, got {actual}: {result}')
         return result
     anonymous, employee, admin, tech1, tech2 = [client() for _ in range(5)]
+    greeting = call(anonymous, '/greeting')
+    check(greeting['message'] in ('Good morning', 'Good afternoon', 'Good evening'), 'Public sign-in greeting')
+    check(greeting['timeZone'] == 'Asia/Kolkata', 'Stable service-desk time zone')
     call(anonymous, '/incidents', status=401)
     call(anonymous, '/session', {'username': 'employee', 'password': 'wrong'}, status=401)
     for c, name, password, role in [(employee,'employee','emp123','EMPLOYEE'),(admin,'admin','admin123','ADMINISTRATOR'),(tech1,'tech1','tech123','TECHNICIAN'),(tech2,'tech2','tech123','TECHNICIAN')]:

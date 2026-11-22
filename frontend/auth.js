@@ -4,6 +4,18 @@
   const signin = $('#signin-form'), signup = $('#signup-form');
   const error = message => { $('#auth-error').textContent = message; $('#auth-error').hidden = !message; };
   if (signin) {
+    const greeting = $('#signin-greeting');
+    if (greeting?.classList) {
+      const fallbackGreeting = () => {
+        const hour = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Kolkata', hour: 'numeric', hourCycle: 'h23' }).format(new Date()));
+        return hour >= 5 && hour < 12 ? 'Good morning' : hour >= 12 && hour < 17 ? 'Good afternoon' : 'Good evening';
+      };
+      window.ITSMApi.request('/greeting').then(result => {
+        greeting.textContent = ['Good morning', 'Good afternoon', 'Good evening'].includes(result.message) ? result.message : fallbackGreeting();
+      }).catch(() => { greeting.textContent = fallbackGreeting(); }).finally(() => {
+        greeting.classList.remove('greeting-pending'); greeting.classList.add('greeting-enter');
+      });
+    }
     const query = new URLSearchParams(location.search);
     const message = query.has('registered') ? 'Account created. Sign in to continue.' : query.has('expired') ? 'Your session ended. Please sign in again.' : query.has('connection') ? 'We could not connect to the service desk. Try signing in again.' : '';
     $('#auth-message').textContent = message; $('#auth-message').hidden = !message;
